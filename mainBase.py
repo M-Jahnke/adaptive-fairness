@@ -21,7 +21,7 @@ for fold in range(1, len(folds) + 1):
         test = np.setdiff1d(np.arange(1, len(y)), training)
     
     classifier.train(x[training,:],y(training))
-    [_, acc, AUC, pRule, DFPR, DFNR] = obtainMetrics(classifier, x[test,:], y(test), sensitive(test))
+    _, acc, AUC, pRule, DFPR, DFNR = obtainMetrics(classifier, x[test,:], y(test), sensitive(test))
     accs = accs + acc / folds
     pRules = pRules + pRule / folds
     DFPRs = DFPRs + DFPR / folds

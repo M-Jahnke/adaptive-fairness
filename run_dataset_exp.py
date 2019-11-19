@@ -47,7 +47,7 @@ def run_dataset_exp(dataset, output_directory, iterations):
                                              [2, 0, 0, -0, -1])  # for disparate mistreatment
 
         classifier.train(x[training, :], y(training), sensitive(training), validationFunction)
-        [_, acc, _, pRule, DFPR, DFNR, b_acc, TP_NP, TP_P, TN_NP, TN_P] = validationFunction2(classifier, x[test, :],
+        _, acc, _, pRule, DFPR, DFNR, b_acc, TP_NP, TP_P, TN_NP, TN_P = validationFunction2(classifier, x[test, :],
                                                                                               y(test), sensitive(test))
 
         accs = accs + acc / folds

@@ -34,4 +34,4 @@ def obtainMetrics(classifier, x, y, sensitive, objectiveWeights=np.zeros(5, 1)):
 
     objective = objectiveWeights[1] * accuracy + objectiveWeights[2] * AUC + objectiveWeights[3] * pRule + objectiveWeights[4] * abs(DFPR) + objectiveWeights[5] * abs(DFNR)
 
-    return [objective, accuracy, AUC, pRule, DFPR, DFNR]
+    return objective, accuracy, AUC, pRule, DFPR, DFNR

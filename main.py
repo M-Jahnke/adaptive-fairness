@@ -33,7 +33,7 @@ for fold in range(1, len(folds) + 1):
     validationFunction2 = obtainMetrics2(classifier, x, y, sensitive, [2, 0, 0, -1, -1])  # for disparate mistreatment
 
     classifier.train(x[training,:],y(training),sensitive(training),validationFunction)
-    [_, acc, _, pRule, DFPR, DFNR, b_acc,TP_NP,TP_P,TN_NP,TN_P] = validationFunction2(classifier, x[test,:], y(test), sensitive(test))
+    _, acc, _, pRule, DFPR, DFNR, b_acc, TP_NP, TP_P, TN_NP, TN_P = validationFunction2(classifier, x[test, :], y(test), sensitive(test))
 
     accs = accs + acc / folds
     pRules = pRules + pRule / folds
