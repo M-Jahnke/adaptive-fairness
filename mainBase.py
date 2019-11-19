@@ -17,11 +17,11 @@ DFNRs = 0
 for fold in range(1, len(folds) + 1):
     classifier = SimpleLogisticClassifier(0.0001)
     if(folds != 1):
-        training = randsample(np.arange(1, len(y)), round(len(training)))
-        test = setdiff(np.arange(1, len(y)), training)
+        training = np.random.standard_normal(round(len(training)))
+        test = np.setdiff1d(np.arange(1, len(y)), training)
     
-    classifier.train(x(training,:),y(training))
-    [_, acc, AUC, pRule, DFPR, DFNR] = obtainMetrics(classifier, x(test,:), y(test), sensitive(test))
+    classifier.train(x[training,:],y(training))
+    [_, acc, AUC, pRule, DFPR, DFNR] = obtainMetrics(classifier, x[test,:], y(test), sensitive(test))
     accs = accs + acc / folds
     pRules = pRules + pRule / folds
     DFPRs = DFPRs + DFPR / folds

@@ -19,17 +19,21 @@ DFNRs = 0
 b_accs = 0
 
 #validationFunction = @(c,x,y,s)obtainMetrics(c,x,y,s,[1 0 1 0 0]) # for disparate impact
-validationFunction = obtainMetrics(c,x,y,s,[2, 0, 0, -1, -1]) # for disparate mistreatment
-validationFunction2 = obtainMetrics2(c,x,y,s,[2, 0, 0, -1, -1]) # for disparate mistreatment
+# validationFunction = obtainMetrics(c,x,y,s,[2, 0, 0, -1, -1]) # for disparate mistreatment
+# validationFunction2 = obtainMetrics2(c,x,y,s,[2, 0, 0, -1, -1]) # for disparate mistreatment
 
 for fold in range(1, len(folds) + 1):
     if(folds != 1):
-        training = randsample(np.arange(1, len(y)), len(training))
-        test = setdiff(np.arange(1, len(y)), training)
+        training = np.random.standard_normal(len(training))
+        test = np.setdiff1d(np.arange(1, len(y)), training)
 
     classifier = AdaptiveWeights(SimpleLogisticClassifier(0.0001))
-    classifier.train(x(training,:),y(training),sensitive(training),validationFunction)
-    [_, acc, _, pRule, DFPR, DFNR, b_acc,TP_NP,TP_P,TN_NP,TN_P] = validationFunction2(classifier, x(test,:), y(test), sensitive(test))
+
+    validationFunction = obtainMetrics(classifier, x, y, sensitive, [2, 0, 0, -1, -1])  # for disparate mistreatment
+    validationFunction2 = obtainMetrics2(classifier, x, y, sensitive, [2, 0, 0, -1, -1])  # for disparate mistreatment
+
+    classifier.train(x[training,:],y(training),sensitive(training),validationFunction)
+    [_, acc, _, pRule, DFPR, DFNR, b_acc,TP_NP,TP_P,TN_NP,TN_P] = validationFunction2(classifier, x[test,:], y(test), sensitive(test))
 
     accs = accs + acc / folds
     pRules = pRules + pRule / folds
