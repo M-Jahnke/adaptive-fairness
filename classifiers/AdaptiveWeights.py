@@ -1,11 +1,22 @@
 from dataclasses import dataclass
+from typing import Any
 import classifiers
 
 @dataclass
 class Problem:
-    f: ...
+    f: Any # objectiveFunction
 
-
+@dataclass
+class Options:
+    ep: float = 1e-4
+    maxevals: int = 20
+    maxits: int = 10
+    maxdeep: int = 100
+    testflag: int = 0
+    showits: int = 1
+    globalmin: int = 0
+    tol: float = 0.01
+    impcons: int = 0
 
 class AdaptiveWeights: #< handle
 
@@ -16,41 +27,39 @@ class AdaptiveWeights: #< handle
             self.continueFromPreviousWeights = False
             self.heuristicTraining = heuristicTraining
         
-        def train(self, obj, x, y, sensitive, objectiveFunction):
-            self.testflag  = 0 # don't know global min
-            self.showits   = 0 # show iterations
-            self.maxits    = 10 # max number of iterations
-            self.maxevals  = 320 # max function evaluations
-            self.maxdeep   = 200 # max rect divisions
+        def train(self, x, y, sensitive, objectiveFunction):
+            options = Options(testflag=0,showits=0,maxits=10,maxevals=320,maxdeep=200)
             
             directLoss = -objectiveFunction(self.trainModel(x, y, sensitive, params, objectiveFunction), x, y, sensitive)
             
             if(self.heuristicTraining):
                 self.bestParams = classifiers.HeuristicDirect(directLoss, options)
             else:
-                Problem.f = directLoss # ?
-                [_,self.bestParams] = classifiers.Direct(Problem, [0 1;0 1;0 3;0 3], options)
+                problem = Problem(directLoss)
+                [_, self.bestParams] = classifiers.Direct(problem, [[0, 1],[0, 1],[0, 3],[0, 3]], options)
 
             self.trainModel(x, y, sensitive, self.bestParams, objectiveFunction)
-        end
         
-        def trainModel(obj, x, y, sensitive, parameters, objectiveFunction, showConvergence=False):
-            if nargin<7
-                showConvergence = false;
+        def trainModel(self, x, y, sensitive, parameters, objectiveFunction, showConvergence=False):
+            #if nargin<7
+            #    showConvergence = False # --> Python default value
                 
-            mislabelBernoulliMean(1) = parameters(1);
-            mislabelBernoulliMean(2) = parameters(2);
-            convexity(1) = parameters(3);
-            convexity(2) = parameters(4);
-            convergence = [];
-            objective = [];
-            nonSensitive = !sensitive;
+            #mislabelBernoulliMean(1) = parameters(1);
+            #mislabelBernoulliMean(2) = parameters(2);
+            mislabelBernoulliMean = [parameters[0], parameters[1]]
 
-            if(sum(y(sensitive))/sum(sensitive)<sum(y(nonSensitive))/sum(nonSensitive))
-                tmp = sensitive;
-                sensitive = nonSensitive;
-                nonSensitive = tmp;
-            end
+            #convexity(1) = parameters(3);
+            #convexity(2) = parameters(4);
+            convexity = [parameters[2], parameters[3]]
+
+            convergence = []
+            objective = []
+            nonSensitive = not sensitive
+
+            if(sum(y[sensitive])/sum(sensitive)<sum(y[nonSensitive])/sum(nonSensitive)):
+                tmp = sensitive
+                sensitive = nonSensitive
+                nonSensitive = tmp
 
             trainingWeights = ones(length(y),1);
             repeatContinue = 1;
