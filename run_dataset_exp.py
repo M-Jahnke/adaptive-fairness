@@ -30,8 +30,8 @@ def run_dataset_exp(dataset, output_directory, iterations):
     b_accs = 0
     fileID = open(output_directory, 'w')
 
-    # validationFunction = obtainMetrics(c, x, y, s, [2, 0, 0, -0, -1]) # for disparate mistreatment
-    # validationFunction2 = obtainMetrics2(c, x, y, s, [2, 0, 0, -0, -1]) # for disparate mistreatment
+    validationFunction = lambda c, x, y, s: obtainMetrics(c, x, y, s, [2, 0, 0, -0, -1]) # for disparate mistreatment
+    validationFunction2 = lambda c, x, y, s: obtainMetrics2(c, x, y, s, [2, 0, 0, -0, -1]) # for disparate mistreatment
 
     for fold in range(1, len(folds) + 1):
         print(f"iteration {fold}")
@@ -41,11 +41,6 @@ def run_dataset_exp(dataset, output_directory, iterations):
             test = np.setdiff1d(np.arange(1, len(y)), training)  # ?
 
         classifier = AdaptiveWeights(SimpleLogisticClassifier(0.0001))
-
-        validationFunction = obtainMetrics(classifier, x, y, sensitive, [2, 0, 0, -0, -1])  # for disparate mistreatment
-        validationFunction2 = obtainMetrics2(classifier, x, y, sensitive,
-                                             [2, 0, 0, -0, -1])  # for disparate mistreatment
-
         classifier.train(x[training, :], y(training), sensitive(training), validationFunction)
         _, acc, _, pRule, DFPR, DFNR, b_acc, TP_NP, TP_P, TN_NP, TN_P = validationFunction2(classifier, x[test, :],
                                                                                               y(test), sensitive(test))
