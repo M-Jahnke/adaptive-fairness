@@ -16,8 +16,8 @@ def SimpleLogisticClassifier():
         self.W = None
 
     def train(self, x, y, trainingWeights=None, previousW=None):
-        zeroes = np.ones([x.shape[0], 1])
-        np.append(x, zeroes)
+        ones = np.ones([x.shape[0], 1])
+        np.append(x, ones)
         previousW = np.zeros([x.shape[0], 2]) if preciousW is None else previousW
 
 
@@ -47,7 +47,8 @@ def SimpleLogisticClassifier():
                 self.trackedError.add(error / y.shape[0])
                 
     def predict(self, x):
-        np.append(x, zeroes) #nicht ones?
+        ones = np.ones([x.shape[0], 1])
+        np.append(x, ones) #nicht ones?
         planes = np.multiply(x, self.w)
         return sigmoid(planes)
     
@@ -60,5 +61,5 @@ def sigmoid(x):
 
 def sigmoidDerivate(x):
     return exp(-x) / np.power((1 + np.exp(-x)), 2)
-        
+
                 

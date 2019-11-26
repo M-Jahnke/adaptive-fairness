@@ -75,7 +75,7 @@ class AdaptiveWeights:  # < handle
                         1 - mislabelBernoulliMean[1]) + self.convexLoss(y[nonSensitive] - scores[nonSensitive],
                                                                         convexity[1]) * (mislabelBernoulliMean[1])
 
-            trainingWeights = trainingWeights / sum(trainingWeights) * len(trainingWeights)
+            trainingWeights = trainingWeights / sum(trainingWeights) * len(trainingWeights) #shape?
             repeatContinue = np.norm(trainingWeights - prevWeights)
 
             objective = objectiveFunction(self, x, y, sensitive)
