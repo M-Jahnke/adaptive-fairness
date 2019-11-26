@@ -15,35 +15,35 @@ def importBankData():
 
     y = np.ones(len(data), 1)
     #for i=1:length(y)
-    for i in range(1, len(y)):
-        if (str(data(i, 17) == 'no') == 1):
+    for i in range(0, len(y)):
+        if (str(data[i, 16] == 'no') == 1):
             y[i] = 0
 
     #sensitive = strcmp(cellstr(data(:, 3)), 'married') == 1; # females are sensitive
-    sensitive = str(data[:, 3]) == 'married' #females are sensitie
+    sensitive = str(data[:, 2]) == 'married' #females are sensitie
 
     x = [
-        convertToDouble(data[:, 1]),
+        convertToDouble(data[:, 0]),
+        convertToValues(data[:, 1]),
         convertToValues(data[:, 2]),
         convertToValues(data[:, 3]),
         convertToValues(data[:, 4]),
-        convertToValues(data[:, 5]),
-        convertToDouble(data[:, 6]),
+        convertToDouble(data[:, 5]),
+        convertToValues(data[:, 6]),
         convertToValues(data[:, 7]),
         convertToValues(data[:, 8]),
-        convertToValues(data[:, 9]),
-        convertToDouble(data[:, 10]),
-        convertToValues(data[:, 11]),
+        convertToDouble(data[:, 9]),
+        convertToValues(data[:, 10]),
+        convertToDouble(data[:, 11]),
         convertToDouble(data[:, 12]),
         convertToDouble(data[:, 13]),
         convertToDouble(data[:, 14]),
-        convertToDouble(data[:, 15]),
-        convertToValues(data[:, 16])
+        convertToValues(data[:, 15])
     ]
 
     # generate training and test data
     #training = randsample(1:len(y), round(len(y) * 0.667))
     training = np.random.standard_normal(len(y * 0.667))
-    test = np.setdiff1d(np.arange(1, len(y)), training)
+    test = np.setdiff1d(np.arange(0, len(y)), training)
 
     return [x, y, sensitive, training, test]
