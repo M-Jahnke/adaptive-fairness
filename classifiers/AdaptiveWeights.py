@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Any
+from scipydirect import minimize
 import classifiers
 import numpy as np
 
@@ -41,7 +42,17 @@ class AdaptiveWeights:  # < handle
             self.bestParams = classifiers.HeuristicDirect(directLoss, options)
         else:
             problem = Problem(directLoss)
-            [_, self.bestParams] = classifiers.Direct(problem, [[0, 1], [0, 1], [0, 3], [0, 3]], options)
+            # [_, self.bestParams] = classifiers.Direct(problem, [[0, 1], [0, 1], [0, 3], [0, 3]], options)
+            [_, self.bestParams] = classifiers.Direct(
+                problem.f,
+                bounds=[[0, 1], [0, 1], [0, 3], [0, 3]],
+                eps=options.ep,
+                maxf=options.maxevals,
+                maxT=options.maxits,
+                algmethod=0, # use original DIRECT algorithm instead of modified DIRECT-l algorithm
+                fglobal=options.globalmin,
+                fglper=options.tol
+                )
 
         self.trainModel(x, y, sensitive, self.bestParams, objectiveFunction)
 

@@ -1,12 +1,13 @@
 from classifiers.AdaptiveWeights import AdaptiveWeights
 from classifiers.SimpleLogisticClassifier import SimpleLogisticClassifier
+from dataImport.importCompassData import importCompassData
 
 import numpy as np
 
 from obtainMetrics import obtainMetrics
 from obtainMetrics2 import obtainMetrics2
 
-[x, y, sensitive, training, test] = dataImport.importCompassData()
+[x, y, sensitive, training, test] = importCompassData()
 folds = 5
 #x = [x sensitive] # introduces disparate treatment (for synthetic datasets)
 
@@ -22,7 +23,7 @@ b_accs = 0
 validationFunction = lambda c, x, y, s: obtainMetrics(c,x,y,s,[2, 0, 0, -1, -1]) # for disparate mistreatment
 validationFunction2 = lambda c, x, y, s: obtainMetrics2(c,x,y,s,[2, 0, 0, -1, -1]) # for disparate mistreatment
 
-for fold in range(1, len(folds) + 1):
+for fold in range(1, folds+1):
     if(folds != 1):
         training = np.random.standard_normal(len(training))
         test = np.setdiff1d(np.arange(1, len(y)), training)

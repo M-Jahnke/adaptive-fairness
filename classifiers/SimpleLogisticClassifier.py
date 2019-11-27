@@ -18,7 +18,7 @@ def SimpleLogisticClassifier():
     def train(self, x, y, trainingWeights=None, previousW=None):
         ones = np.ones([x.shape[0], 1])
         np.append(x, ones)
-        previousW = np.zeros([x.shape[0], 2]) if preciousW is None else previousW
+        previousW = np.zeros([x.shape[0], 2]) if previousW is None else previousW
 
 
         self.W = previousW
@@ -35,7 +35,7 @@ def SimpleLogisticClassifier():
             if (abs(error - prevError) < self.defaultConvergence):
                 break
             prevError = error
-            derivatives = sigmoidDerivative(planes)
+            derivatives = sigmoidDerivate(planes)
             accumulation = np.divide(np.multiply(xT, np.multiply(np.multiply(derivatives, errors), trainingWeights)),
                                      y.shape[0])
             acuumulation = np.add(accumulation, np.divide(np.multiply(self.defaultRegularization, self.W), y.shape[0]))
@@ -53,13 +53,13 @@ def SimpleLogisticClassifier():
         return sigmoid(planes)
     
     def enableTrainingErrorTracking(self):
-        self.trainingErrorTracking = true
+        self.trainingErrorTracking = True
         
         
 def sigmoid(x):
     return 1.0 / (1.0 + np.exp(-x))
 
 def sigmoidDerivate(x):
-    return exp(-x) / np.power((1 + np.exp(-x)), 2)
+    return np.exp(-x) / np.power((1 + np.exp(-x)), 2)
 
                 
