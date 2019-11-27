@@ -5,20 +5,20 @@ from dataImport.convertToDouble import convertToDouble
 
 
 def importDutchData():
-
     # data = dataset('file', '+dataImport/dutch.csv', 'ReadVarNames', true, 'Delimiter', ',');
     data = pandas.read_csv('./dutch.csv', delimeter=',', header=0)
     # data = data(2: size(data, 1),:);
 
     # y = ones(size(data, 1), 1);
-    y = np.ones(np.size(data, 1), 1)
-    #for i=1:length(y)
+    y = np.ones(np.size(data, 0), 1)
+    # for i=1:length(y)
     for i in range(0, len(y)):
         if (str(data[i, 11]) == '0'):
             y[i] = 0
 
-    # sensitive = strcmp(cellstr(data(:, 1)), '0') == 1;
-    sensitive = str(data[:, 0]) ==  '0'
+    # sensitive = strcmp(cellstr(data(:, 1)), '0') == 1; # MATLAB
+    # sensitive = str(data[:, 0]) ==  '0' # Python
+    sensitive = [True if str(data[i, 0]) == '0' else False for i in range(len(data))]
 
     x = [
         convertToDouble(data[:, 0]),
@@ -38,5 +38,5 @@ def importDutchData():
 
     # generate training and test data
     training = np.random.standard_normal(round(len(y) * 0.5))
-    test = np.setdiff1d(np.arange(1, len(y)+1), training)
-    return [x, y, sensitive, training, test]
+    test = np.setdiff1d(np.arange(0, len(y)), training)
+    return x, y, sensitive, training, test

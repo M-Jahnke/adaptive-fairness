@@ -14,6 +14,6 @@ def sameSignMistreatment(L=2500):
 
     # training = randsample(1:length(y), 2*L);
     training = np.random.standard_normal(2 * L)
-    test = np.setdiff1d(np.arange(1, len(y) + 1), training)
+    test = np.setdiff1d(np.arange(0, len(y)), training)
 
-    return [x, y, sensitive, training, test]
+    return x, y, sensitive, training, test

@@ -5,13 +5,13 @@ from dataImport.convertToDouble import convertToDouble
 from dataImport.convertToValues import convertToValues
 
 
-def MyimportAdultData():
-    #incomeData = dataset('file', '+dataImport/adult.csv', 'ReadVarNames', false, 'Delimiter', ',');
+def importAdultData():
+    # incomeData = dataset('file', '+dataImport/adult.csv', 'ReadVarNames', false, 'Delimiter', ',');
     incomeData = pandas.read_csv('./adult.csv', hedaer=None, delimeter=',')
 
     # y = ones(size(incomeData, 1), 1);
 
-    y = convertToDouble(incomeData[:, 12]) # 0 or 1
+    y = convertToDouble(incomeData[:, 12])  # 0 or 1
 
     # seems unnecessary (y only contains 0 or 1)
     '''
@@ -23,25 +23,26 @@ def MyimportAdultData():
     '''
 
     # females are sensitive
-    sensitive = str(incomeData[:, 8]) == 'Female'
+    # sensitive = str(incomeData[:, 7]) == 'Female' # old pytthon version
+    sensitive = [True if str(incomeData[i, 7]) == 'Female' else False for i in range(incomeData)]
 
     x = [
-        convertToDouble(incomeData[:, 1]),
+        convertToDouble(incomeData[:, 0]),
+        convertToValues(incomeData[:, 1]),
         convertToValues(incomeData[:, 2]),
         convertToValues(incomeData[:, 3]),
         convertToValues(incomeData[:, 4]),
         convertToValues(incomeData[:, 5]),
         convertToValues(incomeData[:, 6]),
         convertToValues(incomeData[:, 7]),
-        convertToValues(incomeData[:, 8]),
+        convertToDouble(incomeData[:, 8]),
         convertToDouble(incomeData[:, 9]),
         convertToDouble(incomeData[:, 10]),
-        convertToDouble(incomeData[:, 11]),
-        convertToValues(incomeData[:, 12])]
+        convertToValues(incomeData[:, 11])]
 
     # generate training and test data
     # training = randsample(1:length(y), round(length(y) * 0.667));
     training = np.random.standard_normal(round(len(y) * 0.667))
-    test = np.setdiff1d(np.arange(1, len(y)+1), training)
+    test = np.setdiff1d(np.arange(0, len(y)), training)
 
-    return [x, y, sensitive, training, test]
+    return x, y, sensitive, training, test
