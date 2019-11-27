@@ -31,14 +31,14 @@ def SimpleLogisticClassifier():
             planes = np.multiply(x, self.W)
 
             errors = np.subtract(sigmoid(planes), y)
-            error = norm(errors)
+            error = np.linalg.norm(errors)
             if (abs(error - prevError) < self.defaultConvergence):
                 break
             prevError = error
-            derivatives = sigmoidDerivate(planes)
+            derivatives = sigmoidDerivative(planes)
             accumulation = np.divide(np.multiply(xT, np.multiply(np.multiply(derivatives, errors), trainingWeights)),
                                      y.shape[0])
-            acuumulation = np.add(accumulation, np.divide(np.multiply(self.defaultRegularization, self.W), y.shape[0]))
+            accumulation = np.add(accumulation, np.divide(np.multiply(self.defaultRegularization, self.W), y.shape[0]))
             velocities = np.add(np.multiply(velocities, 0.2), np.multiply(np.square(accumulation), 0.8))
             self.W = np.subtract(self.W, np.divide(np.multiply(self.defaultTrainingsRate, accumulation),
                                                    np.sqrt(np.add(velocities, 0.1))))
@@ -59,7 +59,7 @@ def SimpleLogisticClassifier():
 def sigmoid(x):
     return 1.0 / (1.0 + np.exp(-x))
 
-def sigmoidDerivate(x):
+def sigmoidDerivative(x):
     return np.exp(-x) / np.power((1 + np.exp(-x)), 2)
 
                 

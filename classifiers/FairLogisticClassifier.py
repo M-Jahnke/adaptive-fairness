@@ -5,24 +5,22 @@ import numpy as np
 
 def FairLogisticClassifier():
     
-    def __init__(self, defaultConvergence = None, defaultTrainingRate = None, defaultRegularization = None, defaultMaxIterations = None, trainingErrorTracking = None):
-        self.defaultConvergence = 0.001 if defaultConvergence is None else defaultConvergence
-        self.defaultTrainingRate = 0.1 if defaultTrainingRate is None else defaultTrainingRate
-        self.defaultRegularization = 0 if defaultRegularization is None else defaultRegularization
-        self.defaultMaxIterations = 10000 if defaultMaxIterations is None else defaultMaxIterations
-        self.trainingErrorTracking = False if trainingErrorTracking is None else trainingErrorTracking
+    def __init__(self, defaultConvergence = 0.001, defaultTrainingRate = 0.1, defaultRegularization = 0, defaultMaxIterations = 10000, trainingErrorTracking = False):
+        self.defaultConvergence = defaultConvergence
+        self.defaultTrainingRate = defaultTrainingRate
+        self.defaultRegularization = defaultRegularization
+        self.defaultMaxIterations = defaultMaxIterations
+        self.trainingErrorTracking = trainingErrorTracking
         self.trackedError = []
         self.W = None
         
     def train(self, x, y, sensitive, CULEPparams, trainingWeights=None, previousW=None):
         zeroes = np.ones([x.shape[0],1])
         np.append(x,zeroes)
-        previousW = np.zeros([x.shape[0], 2]) if preciousW is None else previousW
-        mislabelBernoulliMean1 = CULEPparams[0]
-        mislabelBernoulliMean2 = CULEPparams[1]
-        convexity1 = CULEPparams[2]
-        convexity2 = CULEPparams[3]
-#        nonSensitive = not sensitive
+        previousW = np.zeros([x.shape[0], 2]) if previousW is None else previousW
+        mislabelBernoulliMean = [CULEPparams[0], CULEPparams[1]]
+        convexity = [CULEPparams[2], CULEPparams[3]]
+        nonSensitive =  np.logical_not(sensitive)
         self.W = previousW
         xT = np.transpose(x)
         prevError = 1
@@ -33,13 +31,13 @@ def FairLogisticClassifier():
             planes = np.multiply(x,self.W)
             scores = sigmoid(planes)
             errors = np.subtract(scores, y)
-            error = norm(errors)
+            error = np.linalg.norm(errors)
             if(abs(error-prevError)<self.defaultConvergence):
                 break
             prevError = error
             derivatives = sigmoidDerivative(planes)
             accumulation = np.divide(np.multiply(xT, np.multiply(np.multiply(derivatives, errors), trainingWeights)), y.shape[0])
-            acuumulation = np.add(accumulation, np.divide(np.multiply(self.defaultRegularization, self.W), y.shape[0]))
+            accumulation = np.add(accumulation, np.divide(np.multiply(self.defaultRegularization, self.W), y.shape[0]))
             velocities = np.add(np.multiply(velocities, 0.2), np.multiply(np.square(accumulation), 0.8))
             self.W = np.subtract(self.W, np.divide(np.multiply(self.defaultTrainingsRate, accumulation), np.sqrt(np.add(velocities, 0.1))))
             
@@ -56,7 +54,7 @@ def FairLogisticClassifier():
                                                                         convexity[1]) * (mislabelBernoulliMean[1])
             
             trainingWeightsNext = trainingWeightsNext/np.sum(trainingWeightsNext) * trainingWeightsNext.shape[0]
-            trainingWeights = trainingWeights + trainingRate * np.subtract(trainingWeightsNext, trainingWeights)
+            trainingWeights = trainingWeights + self.defaultTrainingRate * np.subtract(trainingWeightsNext, trainingWeights)
         
                     
     def predict(self, x):
@@ -66,13 +64,13 @@ def FairLogisticClassifier():
         return sigmoid(planes)
     
     def enableTrainingErrorTracking(self):
-        self.trainingErrorTracking = true
+        self.trainingErrorTracking = True
         
 def sigmoid(x):
     return 1.0 / (1.0 + np.exp(-x))
 
-def sigmoidDerivate(x):
-    return exp(-x) / np.power((1 + np.exp(-x)), 2)
+def sigmoidDerivative(x):
+    return np.exp(-x) / np.power((1 + np.exp(-x)), 2)
         
 def convexLoss(x, beta):
     x = x*beta
