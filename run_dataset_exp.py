@@ -7,6 +7,7 @@ from dataImport.importDutchData import importDutchData
 from dataImport.importKDD import importKDD
 
 import numpy as np
+import random
 
 from obtainMetrics import obtainMetrics
 from obtainMetrics2 import obtainMetrics2
@@ -14,7 +15,7 @@ from obtainMetrics2 import obtainMetrics2
 
 def run_dataset_exp(dataset, output_directory, iterations):
     # rng(12345)
-    np.random.seed(12345)
+    random.seed(12345)
 
     if (dataset == 'compass'):
         x, y, sensitive, training, test = importCompassData()
@@ -45,10 +46,10 @@ def run_dataset_exp(dataset, output_directory, iterations):
         print(f"iteration {fold}")
         if (folds != 1):
             # training = randsample(np.arange(1, len(y)), len(training))
-            training = np.random.standard_normal(len(training))  # ?
-            test = np.setdiff1d(np.arange(0, len(y)), training)  # ?
+            training = random.sample(np.arange(0, np.size(y, 0)), np.size(training, 0))
+            test = np.setdiff1d(np.arange(0, np.size(y, 0)), training)
 
-        classifier = AdaptiveWeights(SimpleLogisticClassifier(0.0001))
+        classifier = AdaptiveWeights(SimpleLogisticClassifier(defaultConvergence=0.0001))
         classifier.train(x[training,], y[training], sensitive[training], validationFunction)
         _, acc, _, pRule, DFPR, DFNR, b_acc, TP_NP, TP_P, TN_NP, TN_P = validationFunction2(classifier, x[test,],
                                                                                               y[test], sensitive[test])

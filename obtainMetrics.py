@@ -13,7 +13,7 @@ def obtainMetrics(classifier, x, y, sensitive, objectiveWeights=np.zeros(5, 1)):
     positive = (y > decisionThreshold)
 
     correctClassifcation = 1 - np.logical_xor(positiveClassification, positive)
-    accuracy = sum(correctClassifcation) / len(y)
+    accuracy = sum(correctClassifcation) / np.size(y, 0)
 
     # FPR parity
     DFPR = sum(correctClassifcation(sensitive) == 0 & positive(sensitive) == 0) / sum(positive(sensitive) == 0) - sum(

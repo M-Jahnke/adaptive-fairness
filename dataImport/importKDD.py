@@ -1,5 +1,6 @@
 import numpy as np
 import pandas
+import random
 
 from dataImport.convertToDouble import convertToDouble
 from dataImport.convertToValues import convertToValues
@@ -56,7 +57,7 @@ def importKDD():
         convertToDouble(income_data[2:, 39])]
 
     # for i=1:length(y_temp)
-    for i in range(0, len(y_temp)):
+    for i in range(0, np.size(y_temp, 0)):
         if y_temp(i) == 0:
             y[i] = 0
         else:
@@ -65,11 +66,11 @@ def importKDD():
     # females are sensitive
     # sensitive = strcmp(cellstr(incomeData(3:end, 13)), 'Female') == 1; #MATLAB
     # sensitive = str(income_data[3:, 13]) ==  'Female' # Python
-    sensitive = [True if income_data[2:i] == 'Female' else False for i in range(3, len(income_data))]
+    sensitive = [True if income_data[2:i] == 'Female' else False for i in range(3, np.size(income_data, 0))]
 
     # generate training and test data
     # training = randsample(1:length(y), round(length(y) * 0.667));
-    training = np.random.standard_normal(round(len(y) * 0.667))
-    test = np.setdiff1d(np.arange(1, len(y) + 1), training)
+    training = random.sample(np.arange(0, np.size(y, 0)), round(np.size(y, 0) * 0.667))
+    test = np.setdiff1d(np.arange(0, np.size(y, 0)), training)  # possible error source (bounds)
 
     return x, y, sensitive, training, test

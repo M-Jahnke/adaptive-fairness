@@ -13,7 +13,7 @@ def obtainMetrics2(classifier, x, y, sensitive, objectiveWeights=np.zeros(5, 1))
     positive = (y > decisionThreshold)
 
     correctClassifcation = 1 - np.logical_xor(positiveClassification, positive)
-    accuracy = sum(correctClassifcation) / len(y)
+    accuracy = sum(correctClassifcation) / np.size(y, 0)
 
     tp_non_protected = 1 - sum(positiveClassification(sensitive) == 0 & positive(sensitive) == 1) / sum(
         positive(sensitive) == 1)

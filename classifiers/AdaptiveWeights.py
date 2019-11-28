@@ -43,16 +43,18 @@ class AdaptiveWeights:  # < handle
         else:
             problem = Problem(directLoss)
             # [_, self.bestParams] = classifiers.Direct(problem, [[0, 1], [0, 1], [0, 3], [0, 3]], options)
-            [_, self.bestParams] = classifiers.Direct(
+            res = minimize(
                 problem.f,
                 bounds=[[0, 1], [0, 1], [0, 3], [0, 3]],
                 eps=options.ep,
                 maxf=options.maxevals,
                 maxT=options.maxits,
-                algmethod=0, # use original DIRECT algorithm instead of modified DIRECT-l algorithm
+                algmethod=0,  # use original DIRECT algorithm instead of modified DIRECT-l algorithm
                 fglobal=options.globalmin,
                 fglper=options.tol
-                )
+            )
+
+            self.bestParams = res['x']  # maybe wrong key
 
         self.trainModel(x, y, sensitive, self.bestParams, objectiveFunction)
 
@@ -62,14 +64,14 @@ class AdaptiveWeights:  # < handle
 
         convergence = []
         objective = []
-        nonSensitive = not sensitive  # sensitive wahrscheinlich ein boolean array
+        nonSensitive = np.logical_not(sensitive)
 
         if (sum(y[sensitive]) / sum(sensitive) < sum(y[nonSensitive]) / sum(nonSensitive)):
             tmp = sensitive
             sensitive = nonSensitive
             nonSensitive = tmp
 
-        trainingWeights = np.ones(len(y), 1)
+        trainingWeights = np.ones(np.size(y, 0), 1)
         repeatContinue = 1
         itteration = 0
         prevObjective = float('inf')
@@ -81,13 +83,13 @@ class AdaptiveWeights:  # < handle
             trainingWeights[sensitive] = self.convexLoss(scores[sensitive] - y[sensitive], convexity[0]) * \
                                          mislabelBernoulliMean[0] + self.convexLoss(y[sensitive] - scores[sensitive],
                                                                                     convexity[0]) * (
-                                                     1 - mislabelBernoulliMean[0])
+                                                 1 - mislabelBernoulliMean[0])
             trainingWeights[nonSensitive] = self.convexLoss(scores[nonSensitive] - y[nonSensitive], convexity[1]) * (
-                        1 - mislabelBernoulliMean[1]) + self.convexLoss(y[nonSensitive] - scores[nonSensitive],
-                                                                        convexity[1]) * (mislabelBernoulliMean[1])
+                    1 - mislabelBernoulliMean[1]) + self.convexLoss(y[nonSensitive] - scores[nonSensitive],
+                                                                    convexity[1]) * (mislabelBernoulliMean[1])
 
-            trainingWeights = trainingWeights / sum(trainingWeights) * len(trainingWeights) #shape?
-            repeatContinue = np.norm(trainingWeights - prevWeights)
+            trainingWeights = trainingWeights / sum(trainingWeights) * np.size(trainingWeights, 0)
+            repeatContinue = np.linalg.norm(trainingWeights - prevWeights)
 
             objective = objectiveFunction(self, x, y, sensitive)
             if (objective < prevObjective and itteration > self.maxItterations - 2):
@@ -97,7 +99,8 @@ class AdaptiveWeights:  # < handle
 
             prevObjective = objective
             if (isinstance(showConvergence, list)):
-                convergence = [convergence, np.sqrt(sum(np.pow((trainingWeights - prevWeights), 2)) / len(trainingWeights))]
+                convergence = [convergence,
+                               np.sqrt(sum(np.power((trainingWeights - prevWeights), 2)) / np.size(trainingWeights, 0))]
                 objective = [objective, objective]
 
     '''

@@ -25,10 +25,10 @@ validationFunction2 = lambda c, x, y, s: obtainMetrics2(c, x, y, s, [2, 0, 0, -1
 
 for fold in range(0, folds):
     if (folds != 1):
-        training = np.random.standard_normal(len(training))
-        test = np.setdiff1d(np.arange(1, len(y)), training)
+        training = np.random.standard_normal(np.size(training, 0))
+        test = np.setdiff1d(np.arange(1, np.size(y, 0)), training)
 
-    classifier = AdaptiveWeights(SimpleLogisticClassifier(0.0001))
+    classifier = AdaptiveWeights(SimpleLogisticClassifier(defaultConvergence=0.0001))
     classifier.train(x[training,], y[training], sensitive[training], validationFunction)
     _, acc, _, pRule, DFPR, DFNR, b_acc, TP_NP, TP_P, TN_NP, TN_P = validationFunction2(classifier, x[test,], y[test],
                                                                                         sensitive[test])

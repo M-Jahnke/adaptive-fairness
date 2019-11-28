@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 
 def sameSignMistreatment(L=2500):
@@ -13,7 +14,7 @@ def sameSignMistreatment(L=2500):
     y = [np.ones(L, 1), np.ones(L, 1), np.zeros(L, 1), np.zeros(L, 1)]
 
     # training = randsample(1:length(y), 2*L);
-    training = np.random.standard_normal(2 * L)
+    training = random.sample(np.arange(0, np.size(y, 0)), 2 * L)
     test = np.setdiff1d(np.arange(0, len(y)), training)
 
     return x, y, sensitive, training, test

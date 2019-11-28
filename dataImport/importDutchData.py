@@ -1,5 +1,6 @@
 import numpy as np
 import pandas
+import random
 
 from dataImport.convertToDouble import convertToDouble
 
@@ -12,13 +13,13 @@ def importDutchData():
     # y = ones(size(data, 1), 1);
     y = np.ones(np.size(data, 0), 1)
     # for i=1:length(y)
-    for i in range(0, len(y)):
+    for i in range(0, np.size(y, 0)):
         if (str(data[i, 11]) == '0'):
             y[i] = 0
 
     # sensitive = strcmp(cellstr(data(:, 1)), '0') == 1; # MATLAB
     # sensitive = str(data[:, 0]) ==  '0' # Python
-    sensitive = [True if str(data[i, 0]) == '0' else False for i in range(len(data))]
+    sensitive = [True if str(data[i, 0]) == '0' else False for i in range(np.size(data, 0))]
 
     x = [
         convertToDouble(data[:, 0]),
@@ -37,6 +38,6 @@ def importDutchData():
     # size(x)# for what?
 
     # generate training and test data
-    training = np.random.standard_normal(round(len(y) * 0.5))
-    test = np.setdiff1d(np.arange(0, len(y)), training)
+    training = random.sample(np.arange(0, np.size(y, 0)), round(np.size(y, 0) * 0.5))
+    test = np.setdiff1d(np.arange(0, np.size(y, 0)), training)
     return x, y, sensitive, training, test

@@ -12,7 +12,7 @@ def importCompassData():
     y = np.ones(np.size(data, 0), 1)
 
     # for i=1:length(y_temp)
-    for i in range(0, len(y_temp)):
+    for i in range(0, np.size(y_temp, 0)):
         if y_temp[i] == -1:
             y[i] = 0
         else:
@@ -35,7 +35,7 @@ def importCompassData():
     y = y[2:, 0]
     x = x[2:, :]
 
-    training = np.arange(0, np.floor(np.size(data, 1) * 0.667))
-    test = np.arange((len(training) + 1), len(y) + 1)
+    training = np.arange(0, np.floor(np.size(data, 0) * 0.667))
+    test = np.arange((np.size(training, 0)), np.size(y, 0))
 
     return x, y, sensitive, training, test

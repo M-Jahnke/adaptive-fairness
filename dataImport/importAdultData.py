@@ -1,5 +1,6 @@
 import numpy as np
 import pandas
+import random
 
 from dataImport.convertToDouble import convertToDouble
 from dataImport.convertToValues import convertToValues
@@ -42,7 +43,7 @@ def importAdultData():
 
     # generate training and test data
     # training = randsample(1:length(y), round(length(y) * 0.667));
-    training = np.random.standard_normal(round(len(y) * 0.667))
-    test = np.setdiff1d(np.arange(0, len(y)), training)
+    training = random.sample(np.arange(0, np.size(y, 0)), round(np.size(y, 0) * 0.667))
+    test = np.setdiff1d(np.arange(0, np.size(y, 0)), training)
 
     return x, y, sensitive, training, test

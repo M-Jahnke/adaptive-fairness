@@ -15,10 +15,10 @@ DFPRs = 0
 DFNRs = 0
 
 for fold in range(0, folds):
-    classifier = SimpleLogisticClassifier(0.0001)
+    classifier = SimpleLogisticClassifier(defaultConvergence=0.0001)
     if (folds != 1):
-        training = np.random.standard_normal(round(len(training)))
-        test = np.setdiff1d(np.arange(0, len(y)), training)
+        training = np.random.standard_normal(round(np.size(training, 0)))
+        test = np.setdiff1d(np.arange(0, np.size(y, 0)), training)
 
     classifier.train(x[training,], y[training])
     _, acc, AUC, pRule, DFPR, DFNR = obtainMetrics(classifier, x[test,], y[test], sensitive[test])
