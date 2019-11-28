@@ -51,7 +51,7 @@ def Direct(Problem, bounds, varargin, opts=Options()):
 
 
     #%-- Call DIRini ---------------------------------------------------%
-    [thirds , lengths, c , fc, con, feas_flags, minval,xatmin,perror,history,szes,fcncounter,calltype] = DIRini(Problem,n,bounds[:,0],bounds[:,1],lengths,c,fc,con, feas_flags, szes,theglobalmin,opts.maxdeep,tflag,g_nargout, opts.impcons, varargin{:})
+    thirds , lengths, c , fc, con, feas_flags, minval,xatmin,perror,history,szes,fcncounter,calltype = DIRini(Problem,n,bounds[:,0],bounds[:,1],lengths,c,fc,con, feas_flags, szes,theglobalmin,opts.maxdeep,tflag,g_nargout, opts.impcons, varargin)
 
     ret_minval = minval
     ret_xatmin = xatmin
@@ -65,7 +65,7 @@ def Direct(Problem, bounds, varargin, opts=Options()):
        #-- and divide -------------------------------------------------
        #for i = 1:size(S,2)
        for i in range(size[S, 2]):
-          [lengths,fc,c,con,feas_flags,szes,fcncounter,success] = DIRdivide(bounds[:,0],bounds[:,1],Problem,S[0,i],thirds,lengths, fc,c,con,feas_flags,fcncounter,szes,impcons,calltype,varargin{:})
+          lengths,fc,c,con,feas_flags,szes,fcncounter,success = DIRdivide(bounds[:,0],bounds[:,1],Problem,S[0,i],thirds,lengths, fc,c,con,feas_flags,fcncounter,szes,impcons,calltype,varargin)
 
        #-- update minval, xatmin --------------------------------------
        [minval,fminindex] =  min(fc[0:fcncounter]+con[0:fcncounter])
