@@ -1,7 +1,7 @@
-import dataclasses
+from dataclasses import dataclass
 import numpy as np
 
-@dataclasses
+@dataclass
 class Options:
     maxits: int = 20
     maxevals: int = 10
@@ -28,8 +28,8 @@ def Direct(Problem, bounds, varargin, opts=Options()):
     perror       = 0
     itctr        = 1
     done         = 0
-    #g_nargout    = nargout
-    n            = size(bounds,1) #wrong
+    g_nargout    = nargout
+    n            = np.size(bounds, 0) #wrong
 
     # Determine option values
     # if nargin<3, opts=[]; end
@@ -64,7 +64,7 @@ def Direct(Problem, bounds, varargin, opts=Options()):
        #-- Loop through the potentially optimal hrectangles -----------
        #-- and divide -------------------------------------------------
        #for i = 1:size(S,2)
-       for i in range(size[S, 2]):
+       for i in range(np.size[S, 1]):
           lengths,fc,c,con,feas_flags,szes,fcncounter,success = DIRdivide(bounds[:,0],bounds[:,1],Problem,S[0,i],thirds,lengths, fc,c,con,feas_flags,fcncounter,szes,impcons,calltype,varargin)
 
        #-- update minval, xatmin --------------------------------------
@@ -103,21 +103,21 @@ def Direct(Problem, bounds, varargin, opts=Options()):
           perror = -1
        if g_nargout == 3:
           #-- Store History
-          maxhist = size(history,1)
-          history = history[history + [0] for x in L]
+          maxhist = np.size(history,0)
+          #history = history[history + [0] for x in L]
           history[maxhist+1,0] = itctr
           history[maxhist+1,1] = fcncounter
           history[maxhist+1,2] = minval
 
       #-- New, 06/09/2004
       #-- Call replaceinf if impcons flag is set to 1
-      if impcons == 1:
+      if opts.impcons == 1:
           fc = replaceinf(lengths(:,1:fcncounter),c(:,1:fcncounter),...
               fc(1:fcncounter),con(1:fcncounter),...
               feas_flags(1:fcncounter),pert);
       end
 
-      %-- show iteration stats
+      #-- show iteration stats
       if showits == 1
         if  (con(fminindex) > 0) | (feas_flags(fminindex) == 1)
             fprintf('Iter: %4i   f_min: %15.10f*    fn evals: %8i\n',...
@@ -130,26 +130,21 @@ def Direct(Problem, bounds, varargin, opts=Options()):
       itctr  = itctr + 1;
     end
 
-    %-- Return values
+    #-- Return values
     if g_nargout == 2
-        %-- return x*
+        #-- return x*
         final_xatmin = ret_xatmin;
     elseif g_nargout == 3
-        %-- return x*
+        #-- return x*
         final_xatmin = ret_xatmin;
 
-        %-- chop off 1st row of history
+        #-- chop off 1st row of history
         history(1:size(history,1)-1,:) = history(2:size(history,1),:);
         history = history(1:size(history,1)-1,:);
     end
     return [ret_minval,  final_xatmin,history]
-%------------------------------------------------------------------%
-% Function:   DIRini                                               %
-% Written by: Dan Finkel                                           %
-% Created on: 10/19/2002                                           %
-% Purpose   : Initialization of Direct                             %
-%             to eliminate storing floating points                 %
-%------------------------------------------------------------------%
+
+
 function [l_thirds,l_lengths,l_c,l_fc,l_con, l_feas_flags, minval,xatmin,perror,...
         history,szes,fcncounter,calltype] = DIRini(Problem,n,a,b,...
         p_lengths,p_c,p_fc,p_con, p_feas_flags, p_szes,theglobalmin,...
@@ -163,40 +158,40 @@ l_feas_flags = p_feas_flags;
 szes         = p_szes;
 
 
-%-- start by calculating the thirds array
-%-- here we precalculate (1/3)^i which we will use frequently
+#-- start by calculating the thirds array
+#-- here we precalculate (1/3)^i which we will use frequently
 l_thirds(1) = 1/3;
 for i = 2:maxdeep
    l_thirds(i) = (1/3)*l_thirds(i-1);
 end
 
-%-- length array will store # of slices in each dimension for
-%-- each rectangle. dimension will be rows; each rectangle
-%-- will be a column
+#-- length array will store # of slices in each dimension for
+#-- each rectangle. dimension will be rows; each rectangle
+#-- will be a column
 
-%-- first rectangle is the whole unit hyperrectangle
+#-- first rectangle is the whole unit hyperrectangle
 l_lengths(:,1) = zeros(n,1);
 
-%01/21/04 HACK
-%-- store size of hyperrectangle in vector szes
+#01/21/04 HACK
+#-- store size of hyperrectangle in vector szes
 szes(1,1) = 1;
 
-%-- first element of c is the center of the unit hyperrectangle
+#-- first element of c is the center of the unit hyperrectangle
 l_c(:,1) = ones(n,1)/2;
 
-%-- Determine if there are constraints
+#-- Determine if there are constraints
 calltype = DetermineFcnType(Problem,impcons);
 
-%-- first element of f is going to be the function evaluated
-%-- at the center of the unit hyper-rectangle.
-%om_point   = abs(b - a).*l_c(:,1)+ a;
-%l_fc(1)    = feval(f,om_point,varargin{:});
+#-- first element of f is going to be the function evaluated
+#-- at the center of the unit hyper-rectangle.
+#om_point   = abs(b - a).*l_c(:,1)+ a;
+#l_fc(1)    = feval(f,om_point,varargin{:});
 [l_fc(1),l_con(1), l_feas_flags(1)] = ...
     CallObjFcn(Problem,l_c(:,1),a,b,impcons,calltype,varargin{:});
 fcncounter = 1;
 
 
-%-- initialize minval and xatmin to be center of hyper-rectangle
+#-- initialize minval and xatmin to be center of hyper-rectangle
 xatmin = l_c(:,1);
 minval   = l_fc(1);
 if tflag == 1
@@ -209,18 +204,14 @@ else
    perror = 2;
 end
 
-%-- initialize history
-%if g_nargout == 3
+#-- initialize history
+#if g_nargout == 3
     history(1,1) = 0;
     history(1,2) = 0;
     history(1,3) = 0;
-%end
-%------------------------------------------------------------------%
-% Function   :  find_po                                            %
-% Written by :  Dan Finkel                                         %
-% Created on :  10/19/2002                                         %
-% Purpose    :  Return list of PO hyperrectangles                  %
-%------------------------------------------------------------------%
+#end
+
+
 function rects = find_po(fc,lengths,minval,ep,szes)
 
 %-- 1. Find all rects on hub
@@ -265,13 +256,8 @@ final_pos      = hull(maybe_po(po));
 
 rects = [final_pos;szes(final_pos)];
 return
-%------------------------------------------------------------------%
-% Function   :  calc_ubound                                        %
-% Written by :  Dan Finkel                                         %
-% Created on :  10/19/2002                                         %
-% Purpose    :  calculate the ubound used in determing potentially %
-%               optimal hrectangles                                %
-%------------------------------------------------------------------%
+
+
 function ub = calc_ubound(lengths,fc,hull,szes)
 
 hull_length  = length(hull);
@@ -288,13 +274,8 @@ for i =1:hull_length
     end
 end
 return
-%------------------------------------------------------------------%
-% Function   :  calc_lbound                                        %
-% Written by :  Dan Finkel                                         %
-% Created on :  10/19/2002                                         %
-% Purpose    :  calculate the lbound used in determing potentially %
-%               optimal hrectangles                                %
-%------------------------------------------------------------------%
+
+
 function lb = calc_lbound(lengths,fc,hull,szes)
 
 hull_length  = length(hull);
@@ -311,12 +292,8 @@ for i = 1:hull_length
     end
 end
 return
-%------------------------------------------------------------------%
-% Function   :  DIRdivide                                          %
-% Written by :  Dan Finkel                                         %
-% Created on :  10/19/2002                                         %
-% Purpose    :  Divides rectangle i that is passed in              %
-%------------------------------------------------------------------%
+
+
 function [lengths,fc,c,con,feas_flags,szes,fcncounter,pass] = ...
     DIRdivide(a,b,Problem,index,thirds,p_lengths,p_fc,p_c,p_con,...
     p_feas_flags,p_fcncounter,p_szes,impcons,calltype,varargin)
@@ -397,12 +374,8 @@ szes(index) = 1/2*norm((1/3*ones(size(lengths,1),1)).^(lengths(:,index)));
 pass = 1;
 
 return
-%------------------------------------------------------------------%
-% Function   :  CallConstraints                                    %
-% Written by :  Dan Finkel                                         %
-% Created on :  06/07/2004                                         %
-% Purpose    :  Evaluate Constraints at pointed specified          %
-%------------------------------------------------------------------%
+
+
 function ret_value = CallConstraints(Problem,x,a,b,varargin)
 
 %-- Scale variable back to original space
@@ -430,12 +403,8 @@ if isfield(Problem,'constraint')
     end
 end
 return
-%------------------------------------------------------------------%
-% Function   :  CallObjFcn                                         %
-% Written by :  Dan Finkel                                         %
-% Created on :  06/07/2004                                         %
-% Purpose    :  Evaluate ObjFcn at pointed specified               %
-%------------------------------------------------------------------%
+
+
 function [fcn_value, con_value, feas_flag] = ...
     CallObjFcn(Problem,x,a,b,impcon,calltype,varargin)
 
@@ -472,192 +441,117 @@ if feas_flag == 1
     fcn_value = 10^9;
     con_value = 0;
 end
-return
-%------------------------------------------------------------------%
-% Function   :  replaceinf                                         %
-% Written by :  Dan Finkel                                         %
-% Created on :  06/09/2004                                         %
-% Purpose    :  Assign R. Carter value to given point              %
-%------------------------------------------------------------------%
-function fcn_values = replaceinf(lengths,c,fc,con,flags,pert)
 
-%-- Initialize fcn_values to original values
-fcn_values = fc;
 
-%-- Find the infeasible points
-infeas_points = find(flags == 1);
+def replaceinf(lengths,c,fc,con,flags,pert):
 
-%-- Find the feasible points
-feas_points   = find(flags == 0);
+    #-- Initialize fcn_values to original values
+    fcn_values = fc
 
-%-- Calculate the max. value found so far
-if ~isempty(feas_points)
-    maxfc = max(fc(feas_points) + con(feas_points));
-else
-    maxfc = max(fc + con);
-end
+    #-- Find the infeasible points
+    # infeas_points = find(flags == 1) # (MATLAB) find(a) <==> a.ravel().nonzero() (Python)
+    mflags = np.asarray([True if flags[i] == 1 else False for i in range(0, np.size(flags, 0))])
+    infeas_points = mflags.ravel().nonzero()
 
-for i = 1:length(infeas_points)
-    if isempty(feas_points)
-        %-- no feasible points found yet
-        found_points = [];found_pointsf = [];
-        index = infeas_points(i);
-    else
-        index = infeas_points(i);
+    #-- Find the feasible points
+    # feas_points = find(flags == 0)
+    mflags = np.asarray([True if flags[i] == 0 else False for i in range(0, np.size(flags, 0))])
+    feas_points = mflags.ravel().nonzero()
 
-        %-- Initialize found points to be entire set
-        found_points  = c(:,feas_points);
-        found_pointsf = fc(feas_points) + con(feas_points);
+    #-- Calculate the max. value found so far
+    #if not isempty(feas_points):
+    if feas_points.size == 0:
+        maxfc = max(fc[feas_points] + con[feas_points])
+    else:
+        maxfc = max(fc + con)
 
-        %-- Loop through each dimension, and find points who are close enough
-        for j = 1:size(lengths,1)
-            neighbors = find(abs(found_points(j,:) - c(j,index)) <= ...
-                3^(-lengths(j,index)));
-            if ~isempty(neighbors)
-                found_points  = found_points(:,neighbors);
-                found_pointsf = found_pointsf(neighbors);
-            else
-                found_points = [];found_pointsf = [];
-                break;
-            end
-        end
-    end
+    #for i = 1:length(infeas_points)
+    for i in range(0, np.size(infeas_points, 0)):
+        #if isempty(feas_points):
+        if feas_points.size == 0:
+            #-- no feasible points found yet
+            found_points = []
+            found_pointsf = []
+            index = infeas_points[i]
+        else:
+            index = infeas_points[i]
 
-    %-- Assign Carter value to the point
-    if ~isempty(found_pointsf)
-        %-- assign to index the min. value found + a little bit more
-        fstar = min(found_pointsf);
-        if fstar ~= 0
-            fcn_values(index) = fstar + pert*abs(fstar);
-        else
-            fcn_values(index) = fstar + pert*1;
-        end
-    else
-        fcn_values(index) = maxfc+1;
-        maxfc             = maxfc+1;
-    end
-end
-return
-%------------------------------------------------------------------%
-% Function   :  DetermineFcnType                                   %
-% Written by :  Dan Finkel                                         %
-% Created on :  06/25/2004                                         %
-% Purpose    :  Determine how constraints are handled              %
-%------------------------------------------------------------------%
-function retval = DetermineFcnType(Problem,impcons)
+            #-- Initialize found points to be entire set
+            found_points  = c[:, feas_points - 1]
+            found_pointsf = fc[feas_points] + con[feas_points]
 
-retval = 0;
-if (~isfield(Problem,'constraint'))&(~impcons)
-    %-- No constraints at all
-    retval = 1;
-end
-if isfield(Problem,'constraint')
-    %-- There are explicit constraints. Next determine where
-    %-- they are called
-    if ~isempty(Problem.constraint)
-        if length(Problem.constraint(1).func) == length(Problem.f)
-            %-- Constraint values may be returned from objective
-            %-- function. Investigate further
-            if double(Problem.constraint(1).func) == double(Problem.f)
-                %-- f returns constraint values
-                retval = 2;
-            else
-                %-- f does not return constraint values
-                retval = 3;
-            end
-        else
-            %-- f does not return constraint values
-            retval = 3;
-        end
-    else
-        if impcons
-            retval = 0;
-        else
-            retval = 1;
-        end
-    end
-end
+            #-- Loop through each dimension, and find points who are close enough
+            #for j = 1:size(lengths,1)
+            for j in range(0, np.size(lengths, 0)):
+                # neighbors = find(abs(found_points(j,:) - c(j,index)) <= 3^(-lengths(j,index)))
+                mNeighbors = np.asarray([True if abs(found_points[j,k] - c[j, index]) <= 3 ^ (-lengths[j, index]) else
+                                         False for k in range(0, np.size(found_points, 0))])
+                neighbors = mNeighbors.ravel().nonzero()
+                #if not isempty(neighbors):
+                if not neighbors.size == 0:
+                    found_points  = found_points[:, neighbors]
+                    found_pointsf = found_pointsf[neighbors]
+                else:
+                    found_points = [];found_pointsf = []
+                    break
 
-if (impcons)
-    if ~retval
-        %-- only implicit constraints
-        retval = 4;
-    else
-        %-- both types of constraints
-        retval = 5;
-    end
-end
-%------------------------------------------------------------------%
-% GETOPTS Returns options values in an options structure
-% USAGE
-%   [value1,value2,...]=getopts(options,field1,default1,field2,default2,...)
-% INPUTS
-%   options  : a structure variable
-%   field    : a field name
-%   default  : a default value
-% OUTPUTS
-%   value    : value in the options field (if it exists) or the default value
-%
-% Variables with the field names will be created in the caller's workspace
-% and set to the value in the option variables field (if it exists) or to the
-% default value.
-%
-% Example called from a function:
-%   getopts(options,'tol',1e-8,'maxits',100);
-% where options contains the single field 'tol' with value equal to 1
-% The function have two variable defined in the local workspace, tol with a
-% value of 1 and maxits with a value of 100.
-%
-% If options contains a field name not in the list passed to getopts, a
-% warning is issued.
-%
-%
-% Many thanks to the author of this function,
-% Paul Fackler (pfackler@ncsu.edu)
-%
-%
-%------------------------------------------------------------------%
-function varargout=getopts(options,varargin)
-K=fix(nargin/2);
-if nargin/2==K
-  error('fields and default values must come in pairs')
-end
-if isa(options,'struct'), optstruct=1; else, optstruct=0; end
-varargout=cell(K,1);
-k=0;
-ii=1;
-for i=1:K
-  if optstruct & isfield(options,varargin{ii})
-    assignin('caller',varargin{ii},getfield(options,varargin{ii}));
-    k=k+1;
-  else
-    assignin('caller',varargin{ii},varargin{ii+1});
-  end
-  ii=ii+2;
-end
+        #-- Assign Carter value to the point
+        #if not isempty(found_pointsf):
+        if not found_pointsf.size == 0:
+            #-- assign to index the min. value found + a little bit more
+            fstar = min(found_pointsf)
+            if fstar != 0:
+                fcn_values[index] = fstar + pert*abs(fstar)
+            else:
+                fcn_values[index] = fstar + pert*1
+        else:
+            fcn_values[index] = maxfc+1
+            maxfc = maxfc+1
 
-if optstruct & k~=size(fieldnames(options),1)
-  warning('options variable contains improper fields')
-end
+    return fcn_values
 
-return
-%------------------------------------------------------------------%
-% Versions  : 1.0 - 1st successful implemenation of DIRect
-%           : 2.0 - Removed floating point arithmetic
-%                   duplicated Table 5 of Jones et al.
-%           : 2.1 - increased speed by storing size calcs.
-%           : 2.2 - utitilized linked lists to increase speed
-%           : 2.3 - rewrote ubound to increase speed
-%           : 2.4 - rewrote lbound to increase speed
-%           : 2.5 - removed call to calcsize
-%           : 2.6 - added check_for_ties
-%           : 2.7 - rewrote check_for_ties to compare fp correctly
-%           : 2.8 - changed output arguments, rewrote help
-%           : 3.0 - simplified input/output. Put on web.
-%           : 3.1 - Performanced Tuned! Tremendous speed increase
-%           : 3.2 - Removed llists; performance tuned
-%                   Many thanks to Ray Muzic and Paul Fackler
-%                   for their suggestions to improve this code
-%           : 4.0 - Sped up code, and added 2 constraint handling
-%                   mechanisms.
-%------------------------------------------------------------------%
+def DetermineFcnType(Problem, impcons):
+    retval = 0
+
+    #if (not isfield(Problem, 'constraint')) and (not impcons):
+    if (not ('constrains' in Problem.__annotations__)) and (not impcons):
+        #-- No constraints at all
+        retval = 1
+
+    '''
+    #if isfield(Problem,'constraint'):
+    if 'constraint' in Problem.__annotations__: # wir haben nie constraints <----- !!! also ist diese if irrelevant
+        #-- There are explicit constraints. Next determine where
+        #-- they are called
+        #if not isempty(Problem.constraint):
+        if not Problem.constraint == None:
+            if length(Problem.constraint(1).func) == length(Problem.f): # length meint hier die Anzahl der an das Problem zu übergebenden Parameter, z.B: f(x, y) hat Länge 2
+                #-- Constraint values may be returned from objective
+                #-- function. Investigate further
+                if double(Problem.constraint(1).func) == double(Problem.f):
+                    #-- f returns constraint values
+                    retval = 2
+                else:
+                    #-- f does not return constraint values
+                    retval = 3
+
+            else:
+                #-- f does not return constraint values
+                retval = 3
+
+        else:
+            if impcons:
+                retval = 0
+            else:
+                retval = 1
+    '''
+
+    if (impcons):
+        if not retval:
+            #-- only implicit constraints
+            retval = 4
+        else:
+            #-- both types of constraints
+            retval = 5
+
+    return retval
