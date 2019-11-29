@@ -291,156 +291,186 @@ for i = 1:hull_length
         lb(i)     = -1.976e14;
     end
 end
-return
 
 
-function [lengths,fc,c,con,feas_flags,szes,fcncounter,pass] = ...
-    DIRdivide(a,b,Problem,index,thirds,p_lengths,p_fc,p_c,p_con,...
-    p_feas_flags,p_fcncounter,p_szes,impcons,calltype,varargin)
 
-lengths    = p_lengths;
-fc         = p_fc;
-c          = p_c;
-szes       = p_szes;
-fcncounter = p_fcncounter;
-con        = p_con;
-feas_flags = p_feas_flags;
+def DIRdivide(a,b,Problem,index,thirds,p_lengths,p_fc,p_c,p_con,p_feas_flags,p_fcncounter,p_szes,impcons,calltype,varargin):
 
-%-- 1. Determine which sides are the largest
-li     = lengths(:,index);
-biggy  = min(li);
-ls     = find(li==biggy);
-lssize = length(ls);
-j = 0;
+    lengths    = p_lengths
+    fc         = p_fc
+    c          = p_c
+    szes       = p_szes
+    fcncounter = p_fcncounter
+    con        = p_con
+    feas_flags = p_feas_flags
 
-%-- 2. Evaluate function in directions of biggest size
-%--    to determine which direction to make divisions
-oldc       = c(:,index);
-delta      = thirds(biggy+1);
-newc_left  = oldc(:,ones(1,lssize));
-newc_right = oldc(:,ones(1,lssize));
-f_left     = zeros(1,lssize);
-f_right    = zeros(1,lssize);
-for i = 1:lssize
-    lsi               = ls(i);
-    newc_left(lsi,i)  = newc_left(lsi,i) - delta;
-    newc_right(lsi,i) = newc_right(lsi,i) + delta;
-    [f_left(i), con_left(i), fflag_left(i)]    = CallObjFcn(Problem,newc_left(:,i),a,b,impcons,calltype,varargin{:});
-    [f_right(i), con_right(i), fflag_right(i)] = CallObjFcn(Problem,newc_right(:,i),a,b,impcons,calltype,varargin{:});
-    fcncounter = fcncounter + 2;
-end
-w = [min(f_left, f_right)' ls];
+    #-- 1. Determine which sides are the largest
+    li     = lengths[:, index]
+    biggy  = min(li)
+    #ls     = find(li==biggy)
+    ls = np.asarray([True if li[i] == biggy else False for i in range(0, np.size(li, 0))]).ravel().nonzero()
+    #lssize = length(ls)
+    lssize = np.size(ls, 0)
+    j = 0
 
-%-- 3. Sort w for division order
-[V,order] = sort(w,1);
+    #-- 2. Evaluate function in directions of biggest size
+    #--    to determine which direction to make divisions
+    oldc       = c[:, index]
+    delta      = thirds[biggy+1]
+    newc_left  = oldc[:, np.ones(1,lssize)]
+    newc_right = oldc[:, np.ones(1,lssize)]
+    f_left     = np.zeros(1,lssize)
+    f_right    = np.zeros(1,lssize)
+    #for i = 1:lssize
 
-%-- 4. Make divisions in order specified by order
-for i = 1:size(order,1)
+    # start (own)
+    con_left = [0] * lssize
+    fflag_left = [0] *lssize
+    con_right = [0] * lssize
+    fflag_right = [0] * lssize
+    # end (own)
 
-   newleftindex  = p_fcncounter+2*(i-1)+1;
-   newrightindex = p_fcncounter+2*(i-1)+2;
-   %-- 4.1 create new rectangles identical to the old one
-   oldrect = lengths(:,index);
-   lengths(:,newleftindex)   = oldrect;
-   lengths(:,newrightindex)  = oldrect;
+    for i in range(0, lssize):
+        lsi               = ls[i]
+        newc_left[lsi,i]  = newc_left[lsi,i] - delta
+        newc_right[lsi,i] = newc_right[lsi,i] + delta
+        [f_left[i], con_left[i], fflag_left[i]]    = CallObjFcn(Problem,newc_left[:,i],a,b,impcons,calltype,*varargin)
+        [f_right[i], con_right[i], fflag_right[i]] = CallObjFcn(Problem,newc_right[:,i],a,b,impcons,calltype,*varargin)
+        fcncounter = fcncounter + 2
 
-   %-- old, and new rectangles have been sliced in order(i) direction
-   lengths(ls(order(i,1)),newleftindex)  = lengths(ls(order(i,1)),index) + 1;
-   lengths(ls(order(i,1)),newrightindex) = lengths(ls(order(i,1)),index) + 1;
-   lengths(ls(order(i,1)),index)         = lengths(ls(order(i,1)),index) + 1;
+    #w = [min(f_left, f_right)' ls]
+    w = [min(f_left, f_right).conj().transpose(), ls]
 
-   %-- add new columns to c
-   c(:,newleftindex)  = newc_left(:,order(i));
-   c(:,newrightindex) = newc_right(:,order(i));
+    #-- 3. Sort w for division order
+    #[V,order] = sort(w,1)
+    order = np.argsort(w, 0) # returns only the original indices from the sorted array
 
-   %-- add new values to fc
-   fc(newleftindex)  = f_left(order(i));
-   fc(newrightindex) = f_right(order(i));
+    #-- 4. Make divisions in order specified by order
+    #for i = 1:size(order,1)
+    for i in range(0, np.size(order, 0)):
 
-   %-- add new values to con
-   con(newleftindex)  = con_left(order(i));
-   con(newrightindex) = con_right(order(i));
+       newleftindex  = p_fcncounter+2*(i-1)+1
+       newrightindex = p_fcncounter+2*(i-1)+2
+       #-- 4.1 create new rectangles identical to the old one
+       oldrect = lengths[:,index]
+       __ / lengths[:,newleftindex]   = oldrect # should append !!!
+       __ / lengths[:,newrightindex]  = oldrect # should append !!!
 
-   %-- add new flag values to feas_flags
-   feas_flags(newleftindex)  = fflag_left(order(i));
-   feas_flags(newrightindex) = fflag_right(order(i));
+       #-- old, and new rectangles have been sliced in order(i) direction
+       lengths[ls[order[i,0]],newleftindex]  = lengths[ls[order[i,1]],index] + 1 # append !!!
+       lengths[ls[order[i,0]],newrightindex] = lengths[ls[order[i,1]],index] + 1 # append !!!
+       lengths[ls[order[i,0]],index]        = lengths[ls[order[i,1]],index] + 1
 
-   %-- 01/21/04 Dan Hack
-   %-- store sizes of each rectangle
-   szes(1,newleftindex)  = 1/2*norm((1/3*ones(size(lengths,1),1)).^(lengths(:,newleftindex)));
-   szes(1,newrightindex) = 1/2*norm((1/3*ones(size(lengths,1),1)).^(lengths(:,newrightindex)));
-end
-szes(index) = 1/2*norm((1/3*ones(size(lengths,1),1)).^(lengths(:,index)));
-pass = 1;
+       #-- add new columns to c
+       c(:,newleftindex)  = newc_left(:,order(i))
+       c(:,newrightindex) = newc_right(:,order(i))
 
-return
+       #-- add new values to fc
+       #fc(newleftindex)  = f_left(order(i))
+       fc.append(f_left[order[i]])
+       #fc(newrightindex) = f_right(order(i))
+       fc.append(f_right[order[i]])
+
+       #-- add new values to con
+       #con(newleftindex)  = con_left(order(i))
+       con.append(con_left[order[i]])
+       #con(newrightindex) = con_right(order(i))
+       con.append(con_right[order[i]])
+
+       #-- add new flag values to feas_flags
+       #feas_flags(newleftindex)  = fflag_left(order(i))
+       feas_flags.append(fflag_left[order[i]])
+       #feas_flags(newrightindex) = fflag_right(order(i))
+       feas_flags.append(fflag_right[order[i]])
+
+       #-- 01/21/04 Dan Hack
+       #-- store sizes of each rectangle
+       #szes(1,newleftindex)  = 1/2*norm((1/3*ones(size(lengths,1),1)).^(lengths(:,newleftindex)))
+       szes[0, newleftindex] = 1 / 2 * np.linalg.norm(np.power((1 / 3 * np.ones(np.size(lengths, 0), 1)), (lengths[:, newleftindex])))
+       #szes(1,newrightindex) = 1/2*norm((1/3*ones(size(lengths,1),1)).^(lengths(:,newrightindex)))
+       szes[0, newrightindex] = 1 / 2 * np.linalg.norm(np.power((1 / 3 * np.ones(np.size(lengths, 0), 1)), (lengths[:, newrightindex])))
+
+    # szes(index) = 1/2*norm((1/3*ones(size(lengths,1),1)).^(lengths(:,index)))
+    szes[index] = 1 / 2 * np.linalg.norm(np.power((1 / 3 * np.ones(np.size(lengths, 0), 1)), (lengths[:, index])))
+    should_pass = 1
+    return [lengths,fc,c,con,feas_flags,szes,fcncounter,should_pass]
 
 
-function ret_value = CallConstraints(Problem,x,a,b,varargin)
 
-%-- Scale variable back to original space
-point = abs(b - a).*x+ a;
+def CallConstraints(Problem, x, a, b, *varargin):
 
-ret_value = 0;
-if isfield(Problem,'constraint')
-    if ~isempty(Problem.constraint)
-        for i = 1:Problem.numconstraints
-            if length(Problem.constraint(i).func) == length(Problem.f)
-                if double(Problem.constraint(i).func) == double(Problem.f)
-                    %-- Dont call constraint; value was returned in obj fcn
-                    con_value = 0;
+    #-- Scale variable back to original space
+    point = np.abs(b - a) * x+ a
+
+    ret_value = 0
+    #if isfield(Problem,'constraint')
+    if 'constraint' in Problem.__annotations__:
+        # ----> we will never enter this if <---- !!!
+        '''
+        #if ~isempty(Problem.constraint)
+        if not Problem.constraint == None:
+            #for i = 1:Problem.numconstraints
+            for i in range(0, Problem.numconstraints):
+                if length(Problem.constraint(i).func) == length(Problem.f)
+                    if double(Problem.constraint(i).func) == double(Problem.f)
+                        #-- Dont call constraint; value was returned in obj fcn
+                        con_value = 0;
+                    else
+                        con_value = feval(Problem.constraint(i).func,point,varargin{:});
+                    end
                 else
                     con_value = feval(Problem.constraint(i).func,point,varargin{:});
                 end
-            else
-                con_value = feval(Problem.constraint(i).func,point,varargin{:});
-            end
-            if con_value > 0
-                %-- Infeasible, punish with associated pen. param
-                ret_value = ret_value + con_value*Problem.constraint(i).penalty;
-            end
-        end
-    end
-end
-return
+                if con_value > 0
+                    #-- Infeasible, punish with associated pen. param
+                    ret_value = ret_value + con_value*Problem.constraint(i).penalty
+        '''
+    return ret_value
 
+#def CallObjFcn(Problem,x,a,b,impcon,calltype,varargin):
+def CallObjFcn(Problem, x, a, b, impcon, calltype, *varargin):
 
-function [fcn_value, con_value, feas_flag] = ...
-    CallObjFcn(Problem,x,a,b,impcon,calltype,varargin)
+    con_value = 0
+    feas_flag = 0
 
-con_value = 0;
-feas_flag = 0;
+    #-- Scale variable back to original space
+    point = np.abs(b - a) * x + a
 
-%-- Scale variable back to original space
-point = abs(b - a).*x+ a;
+    if calltype == 1:
+        #-- No constraints at all
+        #fcn_value = feval(Problem.f,point,varargin{:})
+        fcn_value = eval(Problem.f)(point, *varargin)
+    elif calltype == 2:
+        #-- f returns all constraints
+        #[fcn_value, cons] = feval(Problem.f,point,varargin{:})
+        [fcn_value, cons] = eval(Problem.f)(point, *varargin)
+        #for i = 1:length(cons):
+        for i in range(0, np.size(cons, 0)):
+            if cons > 0:
+                con_value = con_value + Problem.constraint(i).penalty*cons(i)
 
-if calltype == 1
-    %-- No constraints at all
-    fcn_value = feval(Problem.f,point,varargin{:});
-elseif calltype == 2
-    %-- f returns all constraints
-    [fcn_value, cons] = feval(Problem.f,point,varargin{:});
-    for i = 1:length(cons)
-        if cons > 0
-            con_value = con_value + Problem.constraint(i).penalty*cons(i);
-        end
-    end
-elseif calltype == 3
-    %-- f returns no constraint values
-    fcn_value = feval(Problem.f,point,varargin{:});
-    con_value = CallConstraints(Problem,x,a,b,varargin{:});
-elseif calltype == 4
-    %-- f returns feas flag
-    [fcn_value,feas_flag] = feval(Problem.f,point,varargin{:});
-elseif calltype == 5
-    %-- f returns feas flags, and there are constraints
-    [fcn_value,feas_flag] = feval(Problem.f,point,varargin{:});
-    con_value = CallConstraints(Problem,x,a,b,varargin{:});
-end
-if feas_flag == 1
-    fcn_value = 10^9;
-    con_value = 0;
-end
+    elif calltype == 3:
+        #-- f returns no constraint values
+        #fcn_value = feval(Problem.f,point,varargin{:})
+        fcn_value = eval(Problem.f)(point, *varargin)
+        #con_value = CallConstraints(Problem,x,a,b,varargin{:})
+        con_value = CallConstraints(Problem, x, a, b, *varargin)
+    elif calltype == 4:
+        #-- f returns feas flag
+        #[fcn_value,feas_flag] = feval(Problem.f,point,varargin{:})
+        [fcn_value, feas_flag] = eval(Problem.f)(point, *varargin)
+    elif calltype == 5:
+        #-- f returns feas flags, and there are constraints
+        #[fcn_value,feas_flag] = feval(Problem.f,point,varargin{:})
+        [fcn_value, feas_flag] = eval(Problem.f)(point, *varargin)
+        #con_value = CallConstraints(Problem,x,a,b,varargin{:})
+        con_value = CallConstraints(Problem, x, a, b, *varargin)
+
+    if feas_flag == 1:
+        fcn_value = 10^9
+        con_value = 0
+
+    return [fcn_value, con_value, feas_flag]
 
 
 def replaceinf(lengths,c,fc,con,flags,pert):

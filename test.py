@@ -1,7 +1,7 @@
 import nlopt
 from numpy import *
 
-class Test():
+class Test:
 
     def __init__(self, a):
         self.a = a

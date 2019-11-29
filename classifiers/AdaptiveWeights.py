@@ -1,13 +1,7 @@
 from dataclasses import dataclass
-from typing import Any
 import numpy as np
 import nlopt
 from classifiers.HeuristicDirect import HeuristicDirect
-
-
-@dataclass
-class Problem:
-    f: Any  # objectiveFunction
 
 
 @dataclass
@@ -35,36 +29,24 @@ class AdaptiveWeights:  # < handle
     def train(self, x, y, sensitive, objectiveFunction):
         options = Options(testflag=0, showits=0, maxits=10, maxevals=320, maxdeep=200)
 
-        directLoss = lambda params: -objectiveFunction(self.trainModel(x, y, sensitive, params, objectiveFunction), x,
-                                                       y, sensitive)
+        directLoss = lambda params, grad: -objectiveFunction(
+            self.trainModel(x, y, sensitive, params, objectiveFunction), x, y, sensitive)
 
         if (self.heuristicTraining):
             self.bestParams = HeuristicDirect(directLoss, options)
         else:
-            problem = Problem(directLoss)
-            #[_, self.bestParams] = classifiers.Direct(problem, [[0, 1], [0, 1], [0, 3], [0, 3]], options)
-            '''
-            res = minimize(
-                problem.f,
-                bounds=[[0, 1], [0, 1], [0, 3], [0, 3]],
-                eps=options.ep,
-                maxf=options.maxevals,
-                maxT=options.maxits,
-                algmethod=0,  # use original DIRECT algorithm instead of modified DIRECT-l algorithm
-                fglobal=options.globalmin,
-                fglper=options.tol
-            )
-            self.bestParams = res['x']  # maybe wrong key
-            '''
+            # problem = Problem(directLoss)
+            # [_, self.bestParams] = classifiers.Direct(problem, [[0, 1], [0, 1], [0, 3], [0, 3]], options)
             bounds = np.array([[0, 1], [0, 1], [0, 3], [0, 3]])
 
             opt = nlopt.opt(nlopt.GN_DIRECT, 4)
             opt.set_maxeval(options.maxevals)
             opt.set_lower_bounds(bounds[:, 0])
             opt.set_upper_bounds(bounds[:, 1])
-            opt.set_min_objective(problem.f)
+            opt.set_min_objective(directLoss)
 
-            r_start = [np.random.uniform(low=bounds[i][0], high=bounds[i][1]) for i in range(0, np.size(bounds, axis=0))]
+            r_start = [np.random.uniform(low=bounds[i][0], high=bounds[i][1]) for i in
+                       range(0, np.size(bounds, axis=0))]
             self.bestParams = opt.optimize(r_start)
 
         self.trainModel(x, y, sensitive, self.bestParams, objectiveFunction)
@@ -82,7 +64,7 @@ class AdaptiveWeights:  # < handle
             sensitive = nonSensitive
             nonSensitive = tmp
 
-        trainingWeights = np.ones(np.size(y, 0), 1)
+        trainingWeights = np.ones((np.size(y, 0), 1))
         repeatContinue = 1
         itteration = 0
         prevObjective = float('inf')
