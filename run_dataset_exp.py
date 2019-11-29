@@ -46,11 +46,12 @@ def run_dataset_exp(dataset, output_directory, iterations):
         print(f"iteration {fold}")
         if (folds != 1):
             # training = randsample(np.arange(1, len(y)), len(training))
-            training = random.sample(np.arange(0, np.size(y, 0)), np.size(training, 0))
+            training = random.sample(np.arange(0, np.size(y, 0)).tolist(), np.size(training, 0))
             test = np.setdiff1d(np.arange(0, np.size(y, 0)), training)
 
         classifier = AdaptiveWeights(SimpleLogisticClassifier(defaultConvergence=0.0001))
-        classifier.train(x[training,], y[training], sensitive[training], validationFunction)
+
+        classifier.train(x[:, training], y[training], sensitive[training], validationFunction)
         _, acc, _, pRule, DFPR, DFNR, b_acc, TP_NP, TP_P, TN_NP, TN_P = validationFunction2(classifier, x[test,],
                                                                                               y[test], sensitive[test])
 

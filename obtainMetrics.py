@@ -2,7 +2,8 @@ import numpy as np
 import sklearn as sk
 
 
-def obtainMetrics(classifier, x, y, sensitive, objectiveWeights=np.zeros(5, 1)):
+def obtainMetrics(classifier, x, y, sensitive, objectiveWeights=None):
+    objectiveWeights = np.zeros(5, 1) if objectiveWeights is None else objectiveWeights
     decisionThreshold = 0.5
     nonSensitive = np.logical_not(sensitive)
 

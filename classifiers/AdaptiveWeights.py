@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Any
-from scipydirect import minimize
-import classifiers
 import numpy as np
+import nlopt
+from classifiers.HeuristicDirect import HeuristicDirect
 
 
 @dataclass
@@ -39,10 +39,11 @@ class AdaptiveWeights:  # < handle
                                                        y, sensitive)
 
         if (self.heuristicTraining):
-            self.bestParams = classifiers.HeuristicDirect(directLoss, options)
+            self.bestParams = HeuristicDirect(directLoss, options)
         else:
             problem = Problem(directLoss)
-            # [_, self.bestParams] = classifiers.Direct(problem, [[0, 1], [0, 1], [0, 3], [0, 3]], options)
+            #[_, self.bestParams] = classifiers.Direct(problem, [[0, 1], [0, 1], [0, 3], [0, 3]], options)
+            '''
             res = minimize(
                 problem.f,
                 bounds=[[0, 1], [0, 1], [0, 3], [0, 3]],
@@ -53,8 +54,18 @@ class AdaptiveWeights:  # < handle
                 fglobal=options.globalmin,
                 fglper=options.tol
             )
-
             self.bestParams = res['x']  # maybe wrong key
+            '''
+            bounds = np.array([[0, 1], [0, 1], [0, 3], [0, 3]])
+
+            opt = nlopt.opt(nlopt.GN_DIRECT, 4)
+            opt.set_maxeval(options.maxevals)
+            opt.set_lower_bounds(bounds[:, 0])
+            opt.set_upper_bounds(bounds[:, 1])
+            opt.set_min_objective(problem.f)
+
+            r_start = [np.random.uniform(low=bounds[i][0], high=bounds[i][1]) for i in range(0, np.size(bounds, axis=0))]
+            self.bestParams = opt.optimize(r_start)
 
         self.trainModel(x, y, sensitive, self.bestParams, objectiveFunction)
 
@@ -103,26 +114,28 @@ class AdaptiveWeights:  # < handle
                                np.sqrt(sum(np.power((trainingWeights - prevWeights), 2)) / np.size(trainingWeights, 0))]
                 objective = [objective, objective]
 
-    '''
-    % fprintf('finished within %d itterations for tradeoff %f\n', itteration, tradeoff);
-    if (iscell(showConvergence))
-        figure(1);
-        hold
-        on
-        plot(1: length(convergence), convergence, showConvergence
-        {1});
-        xlabel('Iteration')
-        ylabel('Root Mean Square of Weight Edits')
-        figure(2);
-        hold
-        on
-        plot(1: obj.maxItterations, [objective
-                                     ones(1, obj.maxItterations - length(objective)) * objective(end)], showConvergence
-        {1});
-        xlabel('Iteration')
-        ylabel('Objective')
-    end
-    '''
+        # fprintf('finished within %d itterations for tradeoff %f\n', itteration, tradeoff);
+        print('We did it! (╯°□°）╯︵ ┻━┻')
+
+        '''
+        if (iscell(showConvergence))
+            figure(1);
+            hold
+            on
+            plot(1: length(convergence), convergence, showConvergence
+            {1});
+            xlabel('Iteration')
+            ylabel('Root Mean Square of Weight Edits')
+            figure(2);
+            hold
+            on
+            plot(1: obj.maxItterations, [objective
+                                         ones(1, obj.maxItterations - length(objective)) * objective(end)], showConvergence
+            {1});
+            xlabel('Iteration')
+            ylabel('Objective')
+        end
+        '''
 
     def predict(self, x):
         return self.model.predict(x)

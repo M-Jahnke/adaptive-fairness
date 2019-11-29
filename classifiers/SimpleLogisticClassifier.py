@@ -3,8 +3,8 @@ import numpy as np
 
 
 
-def SimpleLogisticClassifier():
-    def init(self, defaultConvergence=0.001, defaultTrainingRate=0.1, defaultRegularization=0,
+class SimpleLogisticClassifier():
+    def __init__(self, defaultConvergence=0.001, defaultTrainingRate=0.1, defaultRegularization=0,
              defaultMaxIterations=10000, trainingErrorTracking=False):
         self.defaultConvergence = defaultConvergence
         self.defaultTrainingRate = defaultTrainingRate
@@ -24,7 +24,7 @@ def SimpleLogisticClassifier():
         velocities = np.ones([x.shape[0], 2])
         trainingWeights = np.ones(y.shape[0], 1) if trainingWeights is None else trainingWeights
 
-        for i in range(0, self.maxIterations):
+        for i in range(0, self.defaultMaxIterations):
             planes = x * self.W
             errors = sigmoid(planes) - y
             error = np.linalg.norm(errors)
@@ -35,10 +35,10 @@ def SimpleLogisticClassifier():
 
             accumulation = xT * (derivatives * errors * trainingWeights) / y.shape[0] + self.defaultRegularization * self.W / y.shape[0]
             velocities = velocities * 0.2 + 0.8 * np.power(accumulation, 2)
-            self.W = self.W - self.trainingRate * accumulation / np.sqrt(velocities + 0.1)
+            self.W = self.W - self.defaultTrainingRate * accumulation / np.sqrt(velocities + 0.1)
 
             if self.trainingErrorTracking:
-                self.trackedError.add(error / y.shape[0])
+                self.trackedError.append(error / y.shape[0])
                 
     def predict(self, x):
         ones = np.ones([x.shape[0], 1])
