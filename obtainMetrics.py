@@ -17,18 +17,18 @@ def obtainMetrics(classifier, x, y, sensitive, objectiveWeights=None):
     accuracy = sum(correctClassifcation) / np.size(y, 0)
 
     # FPR parity
-    DFPR = sum(correctClassifcation(sensitive) == 0 & positive(sensitive) == 0) / sum(positive(sensitive) == 0) - sum(
-        correctClassifcation(nonSensitive) == 0 & positive(nonSensitive) == 0) / sum(positive(nonSensitive) == 0)
+    DFPR = sum(correctClassifcation[sensitive] == 0 & positive[sensitive] == 0) / sum(positive[sensitive] == 0) - sum(
+        correctClassifcation[nonSensitive] == 0 & positive[nonSensitive] == 0) / sum(positive[nonSensitive] == 0)
 
     # FNR parity
-    DFNR = sum(positiveClassification(sensitive) == 0 & positive(sensitive) == 1) / sum(positive(sensitive) == 1) - sum(
-        positiveClassification(nonSensitive) == 0 & positive(nonSensitive) == 1) / sum(positive(nonSensitive) == 1)
+    DFNR = sum(positiveClassification[sensitive] == 0 & positive[sensitive] == 1) / sum(positive[sensitive] == 1) - sum(
+        positiveClassification[nonSensitive] == 0 & positive[nonSensitive] == 1) / sum(positive[nonSensitive] == 1)
 
     # pRule
     pRule = min(
-        sum(positiveClassification(sensitive)) / sum(positiveClassification(nonSensitive)) * sum(nonSensitive) / sum(
+        sum(positiveClassification[sensitive]) / sum(positiveClassification[nonSensitive]) * sum(nonSensitive) / sum(
             sensitive),
-        sum(positiveClassification(nonSensitive)) / sum(positiveClassification(sensitive)) * sum(sensitive) / sum(
+        sum(positiveClassification[nonSensitive]) / sum(positiveClassification[sensitive]) * sum(sensitive) / sum(
             nonSensitive))
 
     # AUC evaluation

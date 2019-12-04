@@ -12,7 +12,7 @@ class SimpleSVMClassifier: # < handle
         self.model = svm.LinearSVC()
 
     def train(self, x, y, trainingWeights):
-        self.model.fit(x, y, trainingWeights)
+        self.model.fit(x, y, trainingWeights)           #falsche Gewichte ???
 
     def predict(self, x):
         return self.model.predict(self.model, x)

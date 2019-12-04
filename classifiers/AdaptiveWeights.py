@@ -71,7 +71,7 @@ class AdaptiveWeights:  # < handle
         while (itteration < self.maxItterations and repeatContinue > 0.01):
             itteration = itteration + 1
             prevWeights = trainingWeights
-            self.model.train(x, y, trainingWeights)
+            self.model.train(x, y, trainingWeights)                             # train weights Gewichte der einzelnen Instancen
             scores = self.model.predict(x)
             trainingWeights[sensitive] = self.convexLoss(scores[sensitive] - y[sensitive], convexity[0]) * \
                                          mislabelBernoulliMean[0] + self.convexLoss(y[sensitive] - scores[sensitive],

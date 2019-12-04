@@ -12,7 +12,7 @@ def importCompassData():
     y = np.ones((np.size(data, 0), 1))
 
     # for i=1:length(y_temp)
-    for i in range(0, np.size(y_temp, 0)):
+    for i in range(0, np.size(y_temp, 0)):          #wieso hier auf 1 und 0 setzen ?
         if y_temp[i] == -1:
             y[i] = 0
         else:
@@ -36,10 +36,13 @@ def importCompassData():
 
     # allow multidimensional slicing (?)
     x = np.asarray(x)
+    #print("shape of x: ", x.shape)
     y = np.asarray(y)
     sensitive = np.asarray(sensitive)
+    #print("shape of sensitive after creation", sensitive.shape)
 
-    training = np.arange(0, np.floor(np.size(data, 0) * 0.667))
+    training = np.arange(0, np.floor(np.size(data, 0) * 0.667))         #sollte doch auch 5278 werte haben ?? wird zum slicing benutzt?
+    #print("shape of training ", training.shape)
     test = np.arange((np.size(training, 0)), np.size(y, 0))
 
     return x, y, sensitive, training, test

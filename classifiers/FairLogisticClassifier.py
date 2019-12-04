@@ -57,7 +57,7 @@ def FairLogisticClassifier():
     def predict(self, x):
         ones = np.ones([x.shape[0], 1])
         np.append(x, ones)
-        planes = np.multiply(x, self.w)
+        planes = x * self.w
         return sigmoid(planes)
     
     def enableTrainingErrorTracking(self):

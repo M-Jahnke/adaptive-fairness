@@ -25,11 +25,11 @@ validationFunction2 = lambda c, x, y, s: obtainMetrics2(c, x, y, s, [2, 0, 0, -1
 
 for fold in range(0, folds):
     if (folds != 1):
-        training = np.random.standard_normal(np.size(training, 0))
-        test = np.setdiff1d(np.arange(1, np.size(y, 0)), training)
-
+        training = np.asarray(np.random.standard_normal(np.size(training, 0)), dtype=np.int)
+        test = np.asarray(np.setdiff1d(np.arange(1, np.size(y, 0)), training), dtype=np.int)
+    print(f"Fold started: {fold}")
     classifier = AdaptiveWeights(SimpleLogisticClassifier(defaultConvergence=0.0001))
-    classifier.train(x[training,], y[training], sensitive[training], validationFunction)
+    classifier.train(x[training], y[training], sensitive[training], validationFunction)             # x ist array mit shape [4,5278]
     _, acc, _, pRule, DFPR, DFNR, b_acc, TP_NP, TP_P, TN_NP, TN_P = validationFunction2(classifier, x[test,], y[test],
                                                                                         sensitive[test])
 
