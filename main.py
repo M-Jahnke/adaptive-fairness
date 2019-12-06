@@ -19,7 +19,7 @@ DFPRs = 0
 DFNRs = 0
 b_accs = 0
 
-# validationFunction = @(c,x,y,s)obtainMetrics(c,x,y,s,[1 0 1 0 0]) # for disparate impact
+# validationFunction = @(c,x,y,s)obtainMetrics(c,x,y,s,[1 0 1 0 0]) # for disparate impact (adult and bank)
 validationFunction = lambda c, x, y, s: obtainMetrics(c, x, y, s, [2, 0, 0, -1, -1])  # for disparate mistreatment
 validationFunction2 = lambda c, x, y, s: obtainMetrics2(c, x, y, s, [2, 0, 0, -1, -1])  # for disparate mistreatment
 
@@ -29,7 +29,7 @@ for fold in range(0, folds):
         test = np.asarray(np.setdiff1d(np.arange(1, np.size(y, 0)), training), dtype=np.int)
     print(f"Fold started: {fold}")
     classifier = AdaptiveWeights(SimpleLogisticClassifier(defaultConvergence=0.0001))
-    classifier.train(x[training], y[training], sensitive[training], validationFunction)             # x ist array mit shape [4,5278]
+    classifier.train(x[training], y[training], sensitive[training], validationFunction)
     _, acc, _, pRule, DFPR, DFNR, b_acc, TP_NP, TP_P, TN_NP, TN_P = validationFunction2(classifier, x[test,], y[test],
                                                                                         sensitive[test])
 

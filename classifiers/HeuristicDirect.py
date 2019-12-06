@@ -1,6 +1,5 @@
 import numpy as np
 from dataclasses import dataclass
-#from classifiers.AdaptiveWeights import Options
 
 @dataclass
 class Options:
@@ -64,18 +63,9 @@ def HeuristicDirect(problem, options: Options):
                     reg1 = minReg1 + inc1 * i1
                     for i2 in range(0, regRep2):
                         reg2 = minReg2 + inc2 * i2
-                        # fprintf('=');
                         params = [reg1, reg2, beta1, beta2]
-                        '''
-%                         id = mat2str(params);
-%                         if map.isKey(id)
-%                             score = map(id);
-%                             id
-%                         else
-%                             score = problem(params);
-%                             map(id) = score;
-%                         end'''
-                        score = problem.f(params)
+
+                        score = problem(params)
                         scoreSum = scoreSum + score
                         scoreSquareSum = scoreSquareSum + score * score
                         scoreNum = scoreNum + 1
@@ -106,5 +96,4 @@ def HeuristicDirect(problem, options: Options):
             break
         prevSigma = scoreSigma
 
-    bestParams = [bestReg1, bestReg2, bestBeta1, bestBeta2]
-    return bestParams
+    return [bestReg1, bestReg2, bestBeta1, bestBeta2] # == best params

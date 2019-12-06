@@ -17,9 +17,10 @@ class Options:
     impcons: int = 0
 
 
-class AdaptiveWeights:  # < handle
+class AdaptiveWeights:
 
     def __init__(self, model, heuristicTraining=False):
+        self.counter = 0
         self.model = model
         self.maxItterations = 4
         self.estimatorType = 0
@@ -29,17 +30,14 @@ class AdaptiveWeights:  # < handle
     def train(self, x, y, sensitive, objectiveFunction):
         options = Options(testflag=0, showits=0, maxits=10, maxevals=320, maxdeep=200)
 
-        directLoss = lambda params, grad: -objectiveFunction(
-            self.trainModel(x, y, sensitive, params, objectiveFunction), x, y, sensitive)
+        directLoss = lambda params, grad: -(objectiveFunction(self.trainModel(x, y, sensitive, params, objectiveFunction), x, y, sensitive)[0])[0].item() # tuple: objective, accuracy, AUC, pRule, DFPR, DFNR
 
         if (self.heuristicTraining):
-            self.bestParams = HeuristicDirect(directLoss, options)
+            self.bestParams = HeuristicDirect(directLoss, options) # for what?
         else:
-            # problem = Problem(directLoss)
-            # [_, self.bestParams] = classifiers.Direct(problem, [[0, 1], [0, 1], [0, 3], [0, 3]], options)
             bounds = np.array([[0, 1], [0, 1], [0, 3], [0, 3]])
 
-            opt = nlopt.opt(nlopt.GN_DIRECT, 4)
+            opt = nlopt.opt(nlopt.GN_ORIG_DIRECT, 4)
             opt.set_maxeval(options.maxevals)
             opt.set_lower_bounds(bounds[:, 0])
             opt.set_upper_bounds(bounds[:, 1])
@@ -48,6 +46,7 @@ class AdaptiveWeights:  # < handle
             r_start = [np.random.uniform(low=bounds[i][0], high=bounds[i][1]) for i in
                        range(0, np.size(bounds, axis=0))]
             self.bestParams = opt.optimize(r_start)
+            print(f"bestParams: {self.bestParams}")
 
         self.trainModel(x, y, sensitive, self.bestParams, objectiveFunction)
 
@@ -64,14 +63,14 @@ class AdaptiveWeights:  # < handle
             sensitive = nonSensitive
             nonSensitive = tmp
 
-        trainingWeights = np.ones((np.size(y, 0), 1))
+        trainingWeights = np.ones((np.size(y, 0), 1)) # shape is [3520, 1]
         repeatContinue = 1
         itteration = 0
         prevObjective = float('inf')
         while (itteration < self.maxItterations and repeatContinue > 0.01):
             itteration = itteration + 1
             prevWeights = trainingWeights
-            self.model.train(x, y, trainingWeights)                             # train weights Gewichte der einzelnen Instancen
+            self.model.train(x, y, trainingWeights) # train weights Gewichte der einzelnen Instancen
             scores = self.model.predict(x)
             trainingWeights[sensitive] = self.convexLoss(scores[sensitive] - y[sensitive], convexity[0]) * \
                                          mislabelBernoulliMean[0] + self.convexLoss(y[sensitive] - scores[sensitive],
@@ -84,40 +83,21 @@ class AdaptiveWeights:  # < handle
             trainingWeights = trainingWeights / sum(trainingWeights) * np.size(trainingWeights, 0)
             repeatContinue = np.linalg.norm(trainingWeights - prevWeights)
 
-            objective = objectiveFunction(self, x, y, sensitive)
-            if (objective < prevObjective and itteration > self.maxItterations - 2):
+            objective, _, _, _, _, _ = objectiveFunction(self, x, y, sensitive) # tuple: objective, accuracy, AUC, pRule, DFPR, DFNR
+            if (itteration > self.maxItterations - 2 and not np.isnan(objective) and not np.isnan(prevObjective) and objective < prevObjective):
                 trainingWeights = prevWeights
                 self.model.train(x, y, trainingWeights)
                 break
+            elif np.isnan(objective) or np.isnan(prevObjective):
+                pass # if one of these is NaN, the comparison is false (in MATLAB)
 
             prevObjective = objective
             if (isinstance(showConvergence, list)):
-                convergence = [convergence,
-                               np.sqrt(sum(np.power((trainingWeights - prevWeights), 2)) / np.size(trainingWeights, 0))]
-                objective = [objective, objective]
-
-        # fprintf('finished within %d itterations for tradeoff %f\n', itteration, tradeoff);
-        print('We did it! (╯°□°）╯︵ ┻━┻')
-
-        '''
-        if (iscell(showConvergence))
-            figure(1);
-            hold
-            on
-            plot(1: length(convergence), convergence, showConvergence
-            {1});
-            xlabel('Iteration')
-            ylabel('Root Mean Square of Weight Edits')
-            figure(2);
-            hold
-            on
-            plot(1: obj.maxItterations, [objective
-                                         ones(1, obj.maxItterations - length(objective)) * objective(end)], showConvergence
-            {1});
-            xlabel('Iteration')
-            ylabel('Objective')
-        end
-        '''
+                #convergence = [convergence, np.sqrt(sum(np.power((trainingWeights - prevWeights), 2)) / np.size(trainingWeights, 0))]
+                convergence = np.block(convergence, np.sqrt(sum(np.power((trainingWeights - prevWeights), 2)) / np.size(trainingWeights, 0))) # append matrices like in MATLAB
+                #objective = [objective, objective]
+                objective = np.block(objective, objective)
+        return self
 
     def predict(self, x):
         return self.model.predict(x)

@@ -14,7 +14,6 @@ from obtainMetrics2 import obtainMetrics2
 
 
 def run_dataset_exp(dataset, output_directory, iterations):
-    # rng(12345)
     random.seed(12345)
 
     if (dataset == 'compass'):
@@ -39,10 +38,13 @@ def run_dataset_exp(dataset, output_directory, iterations):
     b_accs = 0
     fileID = open(output_directory, 'w')
 
-    validationFunction = lambda c, x, y, s: obtainMetrics(c, x, y, s, [2, 0, 0, -0, -1]) # for disparate mistreatment
-    validationFunction2 = lambda c, x, y, s: obtainMetrics2(c, x, y, s, [2, 0, 0, -0, -1]) # for disparate mistreatment
+    validationFunction = lambda c, x, y, s: obtainMetrics(c, x, y, s, [1, 0, 1, 0, 0])  # for disparate impact (adult and bank)
+    validationFunction2 = lambda c, x, y, s: obtainMetrics2(c, x, y, s, [1, 0, 1, 0, 0])  # for disparate impact (adult and bank)
 
-    for fold in range(0, folds):
+    #validationFunction = lambda c, x, y, s: obtainMetrics(c, x, y, s, [2, 0, 0, -0, -1]) # for disparate mistreatment (Compass, Dutch and KDD)
+    #validationFunction2 = lambda c, x, y, s: obtainMetrics2(c, x, y, s, [2, 0, 0, -0, -1]) # for disparate mistreatment (Compass, Dutch and KDD)
+
+    for fold in range(1, folds+1):
         print(f"iteration {fold}")
         if (folds != 1):
             # training = randsample(np.arange(1, len(y)), len(training))
@@ -51,7 +53,7 @@ def run_dataset_exp(dataset, output_directory, iterations):
 
         classifier = AdaptiveWeights(SimpleLogisticClassifier(defaultConvergence=0.0001))
 
-        classifier.train(x[:, training], y[training], sensitive[training], validationFunction)
+        classifier.train(x[training, :], y[training], sensitive[training], validationFunction)
         _, acc, _, pRule, DFPR, DFNR, b_acc, TP_NP, TP_P, TN_NP, TN_P = validationFunction2(classifier, x[test,],
                                                                                               y[test], sensitive[test])
 
@@ -60,8 +62,12 @@ def run_dataset_exp(dataset, output_directory, iterations):
         DFPRs = DFPRs + DFPR / folds
         DFNRs = DFNRs + DFNR / folds
         b_accs = b_accs + b_acc / folds
-        print(f"{fileID} TP_P= {TP_P}, TP_NP= {TP_NP}, TN_P= {TN_P}, TN_NP= {TN_NP}")
-        print(
-            f"{fileID}\nCurrent evaluation on fold {fold}: acc = {accs * folds / fold}, balanced acc = {b_accs * folds / fold}, pRule = {pRules * folds / fold}, DFPR = {DFPRs * folds / fold}, DFNR = {DFNRs * folds / fold}\n\n\n")
+
+        str = f"TP_P= {TP_P}, TP_NP= {TP_NP}, TN_P= {TN_P}, TN_NP= {TN_NP}"
+        fileID.write(str)
+        print(str)
+        str = f"Current evaluation on fold {fold}: acc = {accs * folds / fold}, balanced acc = {b_accs * folds / fold}, pRule = {pRules * folds / fold}, DFPR = {DFPRs * folds / fold}, DFNR = {DFNRs * folds / fold}"
+        fileID.write(str)
+        print(str)
 
     fileID.close()

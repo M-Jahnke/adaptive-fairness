@@ -9,4 +9,5 @@ def convertToDouble(val):
     else:
         x = x / np.mean(x)
 
+    x = np.asarray(x)
     return x
