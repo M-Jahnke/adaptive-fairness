@@ -9,11 +9,13 @@ from dataImport.importKDD import importKDD
 import numpy as np
 import random
 
+from dataImport.oppositeSignMistreatment import oppositeSignMistreatment
+from dataImport.sameSignMistreatment import sameSignMistreatment
 from obtainMetrics import obtainMetrics
 from obtainMetrics2 import obtainMetrics2
 
 
-def run_dataset_exp(dataset, output_directory, iterations):
+def run_dataset_exp(dataset, output_directory, iterations, avoid_disparate_treatment=False):
     random.seed(12345)
 
     if (dataset == 'compass'):
@@ -26,9 +28,18 @@ def run_dataset_exp(dataset, output_directory, iterations):
         x, y, sensitive, training, test = importDutchData()
     elif (dataset == 'kdd'):
         x, y, sensitive, training, test = importKDD()
+    elif (dataset == 'synth_opp'):
+        x, y, sensitive, training, test = oppositeSignMistreatment()
+        if avoid_disparate_treatment:
+            x = np.block([x, sensitive]) # introduces disparate treatment
+    elif (dataset == 'synth_same'):
+        x, y, sensitive, training, test = sameSignMistreatment()
+        if avoid_disparate_treatment:
+            x = np.block([x, sensitive])  # introduces disparate treatment
     else:
         return
 
+    print(f"Now running: {dataset}")
     folds = iterations
 
     accs = 0
@@ -38,16 +49,15 @@ def run_dataset_exp(dataset, output_directory, iterations):
     b_accs = 0
     fileID = open(output_directory, 'w')
 
-    validationFunction = lambda c, x, y, s: obtainMetrics(c, x, y, s, [1, 0, 1, 0, 0])  # for disparate impact (adult and bank)
-    validationFunction2 = lambda c, x, y, s: obtainMetrics2(c, x, y, s, [1, 0, 1, 0, 0])  # for disparate impact (adult and bank)
+    # validationFunction = lambda c, x, y, s: obtainMetrics(c, x, y, s, [1, 0, 1, 0, 0])  # for disparate impact (adult and bank)
+    # validationFunction2 = lambda c, x, y, s: obtainMetrics2(c, x, y, s, [1, 0, 1, 0, 0])  # for disparate impact (adult and bank)
 
-    #validationFunction = lambda c, x, y, s: obtainMetrics(c, x, y, s, [2, 0, 0, -0, -1]) # for disparate mistreatment (Compass, Dutch and KDD)
-    #validationFunction2 = lambda c, x, y, s: obtainMetrics2(c, x, y, s, [2, 0, 0, -0, -1]) # for disparate mistreatment (Compass, Dutch and KDD)
+    validationFunction = lambda c, x, y, s: obtainMetrics(c, x, y, s, [2, 0, 0, -0, -1]) # for disparate mistreatment (Compass, Dutch, KDD, SynthOpp and SynthSame)
+    validationFunction2 = lambda c, x, y, s: obtainMetrics2(c, x, y, s, [2, 0, 0, -0, -1]) # for disparate mistreatment (Compass, Dutch, KDD SynthOpp and SynthSame)
 
     for fold in range(1, folds+1):
         print(f"iteration {fold}")
         if (folds != 1):
-            # training = randsample(np.arange(1, len(y)), len(training))
             training = random.sample(np.arange(0, np.size(y, 0)).tolist(), np.size(training, 0))
             test = np.setdiff1d(np.arange(0, np.size(y, 0)), training)
 
@@ -63,10 +73,12 @@ def run_dataset_exp(dataset, output_directory, iterations):
         DFNRs = DFNRs + DFNR / folds
         b_accs = b_accs + b_acc / folds
 
-        str = f"TP_P= {TP_P}, TP_NP= {TP_NP}, TN_P= {TN_P}, TN_NP= {TN_NP}"
+        str = f"iteration {fold}\n"
+        fileID.write(str)
+        str = f"TP_P= {TP_P}, TP_NP= {TP_NP}, TN_P= {TN_P}, TN_NP= {TN_NP}\n"
         fileID.write(str)
         print(str)
-        str = f"Current evaluation on fold {fold}: acc = {accs * folds / fold}, balanced acc = {b_accs * folds / fold}, pRule = {pRules * folds / fold}, DFPR = {DFPRs * folds / fold}, DFNR = {DFNRs * folds / fold}"
+        str = f"Current evaluation on fold {fold}: acc = {accs * folds / fold}, balanced acc = {b_accs * folds / fold}, pRule = {pRules * folds / fold}, DFPR = {DFPRs * folds / fold}, DFNR = {DFNRs * folds / fold}\n\n"
         fileID.write(str)
         print(str)
 
