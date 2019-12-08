@@ -6,38 +6,32 @@ from dataImport.convertToDouble import convertToDouble
 
 
 def importDutchData():
-    # data = dataset('file', '+dataImport/dutch.csv', 'ReadVarNames', true, 'Delimiter', ',');
-    data = pandas.read_csv('./dutch.csv', delimeter=',', header=0)
-    # data = data(2: size(data, 1),:);
+    data = pandas.read_csv('dataImport/dutch.csv', header=0)
 
-    # y = ones(size(data, 1), 1);
-    y = np.ones(np.size(data, 0), 1)
-    # for i=1:length(y)
+    y = np.ones((np.size(data, 0), 1))
     for i in range(0, np.size(y, 0)):
-        if (str(data[i, 11]) == '0'):
+        if (str(data.iloc[i, 11]) == '0'):
             y[i] = 0
 
-    # sensitive = strcmp(cellstr(data(:, 1)), '0') == 1; # MATLAB
-    # sensitive = str(data[:, 0]) ==  '0' # Python
-    sensitive = [True if str(data[i, 0]) == '0' else False for i in range(np.size(data, 0))]
+    sensitive = [True if str(data.iloc[i, 0]) == '0' else False for i in range(np.size(data, 0))]
 
-    x = [
-        convertToDouble(data[:, 0]),
-        convertToDouble(data[:, 1]),
-        convertToDouble(data[:, 2]),
-        convertToDouble(data[:, 3]),
-        convertToDouble(data[:, 4]),
-        convertToDouble(data[:, 5]),
-        convertToDouble(data[:, 6]),
-        convertToDouble(data[:, 7]),
-        convertToDouble(data[:, 8]),
-        convertToDouble(data[:, 8]),
-        convertToDouble(data[:, 10])
-    ]
-
-    # size(x)# for what?
+    x = np.block([convertToDouble(data.iloc[:, 0]).reshape((np.size(data, 0), 1)), convertToDouble(data.iloc[:, 1]).reshape((np.size(data, 0), 1))])
+    x = np.block([x, convertToDouble(data.iloc[:, 2]).reshape((np.size(data, 0), 1))])
+    x = np.block([x, convertToDouble(data.iloc[:, 3]).reshape((np.size(data, 0), 1))])
+    x = np.block([x, convertToDouble(data.iloc[:, 4]).reshape((np.size(data, 0), 1))])
+    x = np.block([x, convertToDouble(data.iloc[:, 5]).reshape((np.size(data, 0), 1))])
+    x = np.block([x, convertToDouble(data.iloc[:, 6]).reshape((np.size(data, 0), 1))])
+    x = np.block([x, convertToDouble(data.iloc[:, 7]).reshape((np.size(data, 0), 1))])
+    x = np.block([x, convertToDouble(data.iloc[:, 8]).reshape((np.size(data, 0), 1))])
+    x = np.block([x, convertToDouble(data.iloc[:, 9]).reshape((np.size(data, 0), 1))])
+    x = np.block([x, convertToDouble(data.iloc[:, 10]).reshape((np.size(data, 0), 1))])
 
     # generate training and test data
-    training = random.sample(np.arange(0, np.size(y, 0)), round(np.size(y, 0) * 0.5))
+    training = random.sample(tuple(np.arange(0, np.size(y, 0))), round(np.size(y, 0) * 0.5))
     test = np.setdiff1d(np.arange(0, np.size(y, 0)), training)
+
+    sensitive = np.asarray(sensitive)
+    training = np.asarray(training)
+    test = np.asarray(test)
+
     return x, y, sensitive, training, test

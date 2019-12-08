@@ -7,8 +7,11 @@ def convertToValues(data):
     classes = np.unique(data).tolist()
     x = []
     for i in range(0, np.size(data, 0)):
-        # x[i - 1] = mapObj[char(data[i])]
-        x.append(classes.index(data[i]))  # could shrink the dimensionality from data[i] to 1 if data is multi-dimensional array
+        item = data[i]
+        if (item is np.nan):
+            x.append(classes.index('nan'))
+            continue
+        x.append(classes.index(item))
 
     # convert to binary
     x = np.asarray(x) # can be deleted with flatten, probably
