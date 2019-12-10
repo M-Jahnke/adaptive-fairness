@@ -20,20 +20,27 @@ def run_dataset_exp(dataset, output_directory, iterations, avoid_disparate_treat
 
     if (dataset == 'compass'):
         x, y, sensitive, training, test = importCompassData()
+        bounds = [2, 0, 0, -0, -1]
     elif (dataset == 'adult'):
         x, y, sensitive, training, test = importAdultData()
+        bounds = [1, 0, 1, 0, 0]
     elif (dataset == 'bank'):
         x, y, sensitive, training, test = importBankData()
+        bounds = [1, 0, 1, 0, 0]
     elif (dataset == 'dutch'):
         x, y, sensitive, training, test = importDutchData()
+        bounds = [2, 0, 0, -0, -1]
     elif (dataset == 'kdd'):
         x, y, sensitive, training, test = importKDD()
+        bounds = [2, 0, 0, -0, -1]
     elif (dataset == 'synth_opp'):
         x, y, sensitive, training, test = oppositeSignMistreatment()
+        bounds = [2, 0, 0, -0, -1]
         if avoid_disparate_treatment:
             x = np.block([x, sensitive]) # introduces disparate treatment
     elif (dataset == 'synth_same'):
         x, y, sensitive, training, test = sameSignMistreatment()
+        bounds = [2, 0, 0, -0, -1]
         if avoid_disparate_treatment:
             x = np.block([x, sensitive])  # introduces disparate treatment
     else:
@@ -49,11 +56,8 @@ def run_dataset_exp(dataset, output_directory, iterations, avoid_disparate_treat
     b_accs = 0
     fileID = open(output_directory, 'w')
 
-    # validationFunction = lambda c, x, y, s: obtainMetrics(c, x, y, s, [1, 0, 1, 0, 0])  # for disparate impact (adult and bank)
-    # validationFunction2 = lambda c, x, y, s: obtainMetrics2(c, x, y, s, [1, 0, 1, 0, 0])  # for disparate impact (adult and bank)
-
-    validationFunction = lambda c, x, y, s: obtainMetrics(c, x, y, s, [2, 0, 0, -0, -1]) # for disparate mistreatment (Compass, Dutch, KDD, SynthOpp and SynthSame)
-    validationFunction2 = lambda c, x, y, s: obtainMetrics2(c, x, y, s, [2, 0, 0, -0, -1]) # for disparate mistreatment (Compass, Dutch, KDD SynthOpp and SynthSame)
+    validationFunction = lambda c, x, y, s: obtainMetrics(c, x, y, s, bounds) # for disparate mistreatment
+    validationFunction2 = lambda c, x, y, s: obtainMetrics2(c, x, y, s, bounds) # for disparate mistreatment
 
     for fold in range(1, folds+1):
         print(f"iteration {fold}")
