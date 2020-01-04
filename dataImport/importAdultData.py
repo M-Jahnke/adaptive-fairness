@@ -8,20 +8,12 @@ from dataImport.convertToValues import convertToValues
 
 def importAdultData():
     incomeData = pandas.read_csv('dataImport/adult.csv', header=None)
+    # cut the dataset (too large)
+    incomeData = incomeData.sample(frac=1).reset_index(drop=True) # shuffle
+    incomeData = incomeData.iloc[:5000] # keep 5000 rows, drop rest
 
     # y = ones(size(incomeData, 1), 1);
-
     y = convertToDouble(incomeData.iloc[:, 12])  # 0 or 1
-
-
-    # seems unnecessary (y only contains 0 or 1)
-    '''
-    for i in range(1, len(y)):
-        if y[i] == 0:
-            y[i] = 0
-        else:
-            y[i] = 1
-    '''
 
     # females are sensitive
     sensitive = [True if incomeData.iloc[i, 7] == 'Female' else False for i in range(0, np.size(incomeData, 0))]
@@ -45,5 +37,6 @@ def importAdultData():
     sensitive = np.asarray(sensitive)
     training = np.asarray(training)
     test = np.asarray(test)
+    y = y.reshape((np.size(y, 0), 1))
 
     return x, y, sensitive, training, test

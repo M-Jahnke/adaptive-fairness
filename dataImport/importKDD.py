@@ -9,6 +9,10 @@ from dataImport.convertToValues import convertToValues
 def importKDD():
     income_data = pandas.read_csv('dataImport/kdd.csv', header=0, na_values=['nan'])
 
+    # cut the dataset (too large)
+    income_data = income_data.sample(frac=1).reset_index(drop=True)  # shuffle
+    income_data = income_data.iloc[:5000]  # keep 5000 rows, drop rest
+
     y_temp = convertToDouble(income_data.iloc[2:, 40])
     y = np.ones((np.size(y_temp, 0), 1))
 

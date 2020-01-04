@@ -8,6 +8,10 @@ from dataImport.convertToDouble import convertToDouble
 def importDutchData():
     data = pandas.read_csv('dataImport/dutch.csv', header=0)
 
+    # cut the dataset (too large)
+    data = data.sample(frac=1).reset_index(drop=True)  # shuffle
+    data = data.iloc[:5000]  # keep 5000 rows, drop rest
+
     y = np.ones((np.size(data, 0), 1))
     for i in range(0, np.size(y, 0)):
         if (str(data.iloc[i, 11]) == '0'):
